@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: BackEnd-mvp API (offers & messages)
   version: "1.0.0"
-  description: Documentation limited to Offer and Message routes as requested
+  description: API documentation for BackEnd-mvp
 servers:
   - url: http://localhost:8080
 paths:

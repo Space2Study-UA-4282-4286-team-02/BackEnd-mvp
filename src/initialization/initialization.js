@@ -36,7 +36,7 @@ const initialization = (app) => {
       swaggerDocument = yaml.load(yamlText)
     }
   } catch (err) {}
-
+ 
   if (!swaggerDocument) {
     const swaggerOptions = {
       definition: {
