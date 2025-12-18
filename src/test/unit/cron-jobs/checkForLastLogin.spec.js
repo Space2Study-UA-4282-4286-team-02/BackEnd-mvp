@@ -21,22 +21,16 @@ jest.mock('~/services/email', () => ({
 }))
 
 let mockedUsersList
+const mockedCurrentDate = new Date(2023, 7, 23, 25, 0, 0, 0)
 
 describe('checkForLastUserLogin cron-job', () => {
   beforeEach(() => {
     mockedUsersList = { items: [{ ...mockedUser, lastLogin: mockedLastLoginDateToSendEmail }] }
     userService.getUsers = jest.fn(() => mockedUsersList)
-    const mockedCurrentDate = new Date(2023, 7, 23, 25, 0, 0, 0)
-    jest.useFakeTimers('modern').setSystemTime(mockedCurrentDate)
-  })
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers()
-    jest.useRealTimers()
   })
 
   it('should send email if last login date is equal to days to send email', async () => {
-    await checkLastLogin()
+    await checkLastLogin(mockedCurrentDate)
 
     expect(userService.getUsers).toHaveBeenCalledTimes(1)
     expect(emailService.sendEmail).toHaveBeenCalledTimes(1)
@@ -52,7 +46,7 @@ describe('checkForLastUserLogin cron-job', () => {
     mockedUsersList = { items: [{ ...mockedUser, lastLogin: mockedLastLoginDateToDeleteUser }] }
     userService.getUsers.mockImplementation(() => mockedUsersList)
 
-    await checkLastLogin()
+    await checkLastLogin(mockedCurrentDate)
 
     expect(userService.getUsers).toHaveBeenCalledTimes(1)
     expect(userService.deleteUser).toHaveBeenCalledTimes(1)
@@ -64,7 +58,7 @@ describe('checkForLastUserLogin cron-job', () => {
     mockedUsersList = { items: [{ ...mockedUser, lastLogin: optimalDate }] }
     userService.getUsers.mockImplementation(() => mockedUsersList)
 
-    const res = await checkLastLogin()
+    const res = await checkLastLogin(mockedCurrentDate)
 
     expect(userService.getUsers).toHaveBeenCalledTimes(1)
     expect(res.length).toBe(1)
@@ -75,7 +69,7 @@ describe('checkForLastUserLogin cron-job', () => {
     mockedUsersList = { items: [{ ...mockedUser }] }
     userService.getUsers.mockImplementation(() => mockedUsersList)
 
-    const res = await checkLastLogin()
+    const res = await checkLastLogin(mockedCurrentDate)
 
     expect(userService.getUsers).toHaveBeenCalledTimes(1)
     expect(res.length).toBe(1)

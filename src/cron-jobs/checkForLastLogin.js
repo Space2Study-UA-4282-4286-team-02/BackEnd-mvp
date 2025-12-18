@@ -24,9 +24,9 @@ const defaultFilter = {
 
 const checkUsersForLastLogin = new CronJob(EVERY_DAY_AT_3AM, () => checkLastLogin(), null, false, timeZone)
 
-const checkLastLogin = async () => {
+const checkLastLogin = async (currentDate = new Date()) => {
   const users = await userService.getUsers(defaultFilter)
-  const dateNow = new Date()
+  const dateNow = currentDate
 
   return Promise.all(
     users.items.map(async ({ email, firstName, lastLogin, language, _id }) => {

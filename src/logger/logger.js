@@ -21,7 +21,9 @@ const logger = createLogger({
   ]
 })
 
-if (process.env.NODE_ENV !== 'test') {
+const shouldUseMongoTransport = process.env.NODE_ENV !== 'test' && Boolean(MONGODB_URL)
+
+if (shouldUseMongoTransport) {
   logger.add(
     new transports.MongoDB({
       level: 'error',
@@ -31,6 +33,9 @@ if (process.env.NODE_ENV !== 'test') {
       handleExceptions: true
     })
   )
+} else if (process.env.NODE_ENV !== 'test') {
+  // eslint-disable-next-line no-console
+  console.warn('MongoDB logger disabled: missing MONGODB_URL')
 }
 
 module.exports = logger
