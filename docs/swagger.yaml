@@ -1,10 +1,12 @@
 openapi: 3.0.0
 info:
-  title: BackEnd-mvp API (offers & messages)
+  title: BackEnd-mvp API
   version: "1.0.0"
   description: API documentation for BackEnd-mvp
+
 servers:
   - url: http://localhost:8080
+
 paths:
   /offers:
     get:
@@ -29,6 +31,7 @@ paths:
       responses:
         '201':
           description: Created
+
   /offers/{id}:
     get:
       summary: Get offer by id
@@ -73,6 +76,7 @@ paths:
       responses:
         '204':
           description: Deleted
+
   /chats/{id}/messages:
     get:
       summary: Get messages for a chat
@@ -109,19 +113,13 @@ paths:
         '201':
           description: Message created
     delete:
-      summary: Delete messages in a chat (clears messages according to request)
+      summary: Delete messages in a chat
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '204':
           description: Deleted
@@ -133,12 +131,90 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '200':
           description: Cleared
+
+  /auth/google-auth:
+    post:
+      tags:
+        - Auth
+      summary: Sign in with Google
+      description: >
+        Accepts a Google ID token (JWT) from the client, verifies it using
+        google-auth-library OAuth2Client (audience = GOOGLE_CLIENT_ID),
+        extracts the token payload (email, sub) and performs authentication
+        via authService.googleLogin. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly cookies with access and refresh tokens
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '400':
+          description: Missing or malformed idToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid Google token or user not registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Google account mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    GoogleAuthRequest:
+      type: object
+      properties:
+        idToken:
+          type: string
+          description: Google ID token (JWT)
+      required:
+        - idToken
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+      required:
+        - accessToken
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string

@@ -1,5 +1,6 @@
 const authService = require('~/services/auth')
 const { oneDayInMs } = require('~/consts/auth')
+const { verifyGoogleIdToken } = require('~/services/googleAuth')
 const {
   config: { COOKIE_DOMAIN }
 } = require('~/configs/config')
@@ -10,10 +11,11 @@ const {
 const COOKIE_OPTIONS = {
   maxAge: oneDayInMs,
   httpOnly: true,
-  secure: true,
-  sameSite: 'none',
-  domain: COOKIE_DOMAIN
-}
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+   ...(process.env.NODE_ENV === 'production' && COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+   path: '/'
+};
 
 const signup = async (req, res) => {
   const { role, firstName, lastName, email, password } = req.body
@@ -36,6 +38,41 @@ const login = async (req, res) => {
 
   res.status(200).json(tokens)
 }
+
+const googleLogin = async (req, res) => {
+ const idToken =
+  req.body.idToken ||
+  req.body.id_token ||
+  req.body.credential ||
+  req.body.token ||
+  (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+
+  if (!idToken) {
+    return res.status(400).json({
+      error: { message: 'Missing idToken' },
+    });
+  }
+
+  const payload = await verifyGoogleIdToken(idToken);
+
+  if (!payload?.email || !payload?.sub) {
+    return res.status(401).json({
+      error: { message: 'Invalid Google token payload' },
+    });
+  }
+
+  const email = payload.email.toLowerCase();
+  const googleId = payload.sub;
+
+  const tokens = await authService.googleLogin(email, googleId);
+
+  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS);
+  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS);
+
+  delete tokens.refreshToken;
+  res.status(200).json(tokens);
+};
+
 
 const logout = async (req, res) => {
   const { refreshToken } = req.cookies
@@ -90,6 +127,7 @@ module.exports = {
   signup,
   login,
   logout,
+  googleLogin,
   refreshAccessToken,
   sendResetPasswordEmail,
   updatePassword

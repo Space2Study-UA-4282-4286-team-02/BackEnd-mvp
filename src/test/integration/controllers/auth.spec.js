@@ -114,4 +114,82 @@ describe('Auth controller', () => {
       expectError(400, errors.BAD_RESET_TOKEN, response)
     })
   })
+
+  describe('Google auth endpoint', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('should log in a registered user via Google', async () => {
+      const googleAuth = require('~/services/googleAuth')
+      const authService = require('~/services/auth')
+
+      jest.spyOn(googleAuth, 'verifyGoogleIdToken').mockResolvedValue({
+        email: user.email,
+        sub: 'google-sub-123',
+        email_verified: true
+      })
+
+      jest.spyOn(authService, 'googleLogin').mockResolvedValue({
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456'
+      })
+
+      const response = await app.post('/auth/google-auth').send({ idToken: 'fake-token' })
+
+      expect(response.status).toBe(200)
+      expect(response.body).toHaveProperty('accessToken', 'access-123')
+      expect(response.headers['set-cookie']).toBeDefined()
+    })
+
+    it('should return "You are not registered" for unregistered Google user', async () => {
+      const googleAuth = require('~/services/googleAuth')
+      const authService = require('~/services/auth')
+
+      jest.spyOn(googleAuth, 'verifyGoogleIdToken').mockResolvedValue({
+        email: 'nouser@example.com',
+        sub: 'google-sub-999',
+        email_verified: true
+      })
+
+      jest.spyOn(authService, 'googleLogin').mockImplementation(() => {
+        const err = new Error('You are not registered')
+        err.status = 401
+        err.code = 'USER_NOT_REGISTERED'
+        throw err
+      })
+
+      const response = await app.post('/auth/google-auth').send({ idToken: 'fake-token' })
+
+      expect(response.status).toBe(401)
+      const errMsg =
+        response.body && response.body.error && (response.body.error.message || response.body.error.code)
+      expect(typeof errMsg === 'string' ? errMsg.includes('You are not registered') : false).toBeTruthy()
+    })
+
+    it('should return 400 when idToken is missing', async () => {
+      const response = await app.post('/auth/google-auth').send({})
+
+      expect(response.status).toBe(400)
+      const errMsg = response.body && response.body.error && (response.body.error.message || response.body.error.code)
+      expect(typeof errMsg === 'string' ? errMsg.includes('Missing idToken') : false).toBeTruthy()
+    })
+
+    it('should return 401 for unverified Google email', async () => {
+      const googleAuth = require('~/services/googleAuth')
+
+      jest.spyOn(googleAuth, 'verifyGoogleIdToken').mockImplementation(() => {
+        const err = new Error('Google email is not verified')
+        err.status = 401
+        err.code = 'UNVERIFIED_GOOGLE_EMAIL'
+        throw err
+      })
+
+      const response = await app.post('/auth/google-auth').send({ idToken: 'fake-token' })
+
+      expect(response.status).toBe(401)
+      const errMsg = response.body && response.body.error && (response.body.error.message || response.body.error.code)
+      expect(typeof errMsg === 'string' ? errMsg.includes('verified') || errMsg.includes('UNVERIFIED_GOOGLE_EMAIL') : false).toBeTruthy()
+    })
+  })
 })
