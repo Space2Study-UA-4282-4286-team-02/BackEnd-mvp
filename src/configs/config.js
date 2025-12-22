@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const config = {
   MONGODB_URL: process.env.MONGODB_URL,
   CLIENT_URL: process.env.CLIENT_URL,
@@ -22,6 +24,14 @@ const gmailCredentials = {
   redirectUri: process.env.GMAIL_REDIRECT_URI
 }
 
+const smtpCredentials = {
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE,
+  user: process.env.SMTP_USER,
+  pass: process.env.SMTP_PASS
+}
+
 const superAdmin = {
   firstName: process.env.MAIL_FIRSTNAME,
   lastName: process.env.MAIL_LASTNAME,
@@ -35,4 +45,4 @@ const azureAccess = {
   AZURE_HOST: process.env.AZURE_HOST
 }
 
-module.exports = { config, gmailCredentials, superAdmin, azureAccess }
+module.exports = { config, gmailCredentials, smtpCredentials, superAdmin, azureAccess }
