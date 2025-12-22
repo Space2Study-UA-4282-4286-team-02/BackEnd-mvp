@@ -221,8 +221,7 @@ describe('Auth controller', () => {
       const errMsg = response.body && response.body.error && (response.body.error.message || response.body.error.code)
       expect(typeof errMsg === 'string' ? errMsg.includes('verified') || errMsg.includes('UNVERIFIED_GOOGLE_EMAIL') : false).toBeTruthy()
     })
-  })
-
+  }) 
   describe('ConfirmEmail endpoint', () => {
     it('should confirm email successfully', async () => {
       const confirmToken = await getConfirmToken()
@@ -307,7 +306,6 @@ describe('Auth controller', () => {
       const response = await app.post('/auth/google-auth').send({ token: 'google-token' })
 
       expectError(400, errors.INCORRECT_CREDENTIALS, response)
-
     })
   })
 })
