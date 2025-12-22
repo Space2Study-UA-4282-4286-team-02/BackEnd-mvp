@@ -39,17 +39,12 @@ const errorMiddleware = (err, _req, res, _next) => {
     return handleDataError(message, code)
   }
 
-  if (!status && !code) {
-    return res.status(500).json({
-      status: 500,
-      code: INTERNAL_SERVER_ERROR.code,
-      message
-    })
-  }
+  const statusCode = status || 500
+  const errorCode = code || INTERNAL_SERVER_ERROR.code
 
-  res.status(status).json({
-    status,
-    code,
+  res.status(statusCode).json({
+    status: statusCode,
+    code: errorCode,
     message
   })
 }

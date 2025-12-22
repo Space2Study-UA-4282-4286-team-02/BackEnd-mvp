@@ -11,12 +11,15 @@ const serverSetup = async (app) => {
   await databaseInitialization()
   await checkUserExistence()
   initialization(app)
-  return app.listen(SERVER_PORT, () => {
-    logger.info(`Server is running on port ${SERVER_PORT}`)
+  const port = process.env.NODE_ENV === 'test' ? 0 : SERVER_PORT
+  const server = app.listen(port, () => {
     if (process.env.NODE_ENV !== 'test') {
+      logger.info(`Server is running on port ${SERVER_PORT}`)
       scheduledCronJobs()
     }
   })
+
+  return server
 }
 
 module.exports = serverSetup

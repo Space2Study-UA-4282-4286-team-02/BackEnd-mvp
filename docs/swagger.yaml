@@ -153,6 +153,7 @@ paths:
               $ref: '#/components/schemas/GoogleAuthRequest'
       responses:
         '200':
+
           description: Authentication successful
           headers:
             Set-Cookie:
@@ -218,3 +219,58 @@ components:
               type: string
             message:
               type: string
+
+          description: Cleared
+  /auth/google-auth:
+    post:
+      summary: Authenticate user with Google token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                role:
+                  type: string
+              required:
+                - token
+      responses:
+        '200':
+          description: Access token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+        '400':
+          description: Invalid Google token
+        '401':
+          description: User not confirmed or not found
+  /auth/confirm-email/{token}:
+    get:
+      summary: Confirm user email by token
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email confirmed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Invalid confirmation token
+        '404':
+          description: User not found

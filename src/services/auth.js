@@ -7,12 +7,16 @@ const {
   INCORRECT_CREDENTIALS,
   BAD_RESET_TOKEN,
   BAD_REFRESH_TOKEN,
-  USER_NOT_FOUND
+  USER_NOT_FOUND,
+  BAD_CONFIRM_TOKEN,
+  DOCUMENT_NOT_FOUND,
+  EMAIL_ALREADY_CONFIRMED
 } = require('~/consts/errors')
 const emailSubject = require('~/consts/emailSubject')
 const {
   tokenNames: { REFRESH_TOKEN, RESET_TOKEN, CONFIRM_TOKEN }
 } = require('~/consts/auth')
+const { verifyGoogleToken } = require('~/utils/googleAuth')
 
 const authService = {
   signup: async (role, firstName, lastName, email, password, language) => {
@@ -34,7 +38,7 @@ const authService = {
       throw createError(401, USER_NOT_FOUND)
     }
 
-    const checkedPassword = (password === user.password) || isFromGoogle
+    const checkedPassword = password === user.password || isFromGoogle
 
     if (!checkedPassword) {
       throw createError(401, INCORRECT_CREDENTIALS)
@@ -153,6 +157,51 @@ const authService = {
     await emailService.sendEmail(email, emailSubject.SUCCESSFUL_PASSWORD_RESET, language, {
       firstName
     })
+  },
+
+  confirmEmail: async (confirmToken) => {
+    const tokenData = tokenService.validateConfirmToken(confirmToken)
+
+    if (!tokenData) {
+      throw createError(400, BAD_CONFIRM_TOKEN)
+    }
+
+    const user = await getUserById(tokenData.id)
+
+    if (!user) {
+      throw createError(404, DOCUMENT_NOT_FOUND(['User']))
+    }
+
+    if (user.isEmailConfirmed) {
+      throw createError(400, EMAIL_ALREADY_CONFIRMED)
+    }
+
+    const confirmTokenData = await tokenService.findToken(confirmToken, CONFIRM_TOKEN)
+
+    if (!confirmTokenData) {
+      throw createError(400, BAD_CONFIRM_TOKEN)
+    }
+
+    await privateUpdateUser(user._id, { isEmailConfirmed: true })
+    await tokenService.removeConfirmToken(confirmToken)
+  },
+
+  googleAuth: async (token) => {
+    let payload
+
+    try {
+      payload = await verifyGoogleToken(token)
+    } catch (error) {
+      throw createError(400, INCORRECT_CREDENTIALS)
+    }
+
+    const { email } = payload || {}
+
+    if (!email) {
+      throw createError(400, INCORRECT_CREDENTIALS)
+    }
+
+    return authService.login(email, undefined, true)
   }
 }
 
