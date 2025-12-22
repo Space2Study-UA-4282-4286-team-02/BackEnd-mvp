@@ -220,6 +220,8 @@ describe('Auth controller', () => {
       expect(response.status).toBe(401)
       const errMsg = response.body && response.body.error && (response.body.error.message || response.body.error.code)
       expect(typeof errMsg === 'string' ? errMsg.includes('verified') || errMsg.includes('UNVERIFIED_GOOGLE_EMAIL') : false).toBeTruthy()
+    })
+  })
 
   describe('ConfirmEmail endpoint', () => {
     it('should confirm email successfully', async () => {
