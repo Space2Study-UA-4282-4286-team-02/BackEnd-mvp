@@ -144,7 +144,7 @@ paths:
         Accepts a Google ID token (JWT) from the client, verifies it using
         google-auth-library OAuth2Client (audience = GOOGLE_CLIENT_ID),
         extracts the token payload (email, sub) and performs authentication
-        via authService.googleLogin. 
+        via authService.googleLogin.
       requestBody:
         required: true
         content:
@@ -153,7 +153,6 @@ paths:
               $ref: '#/components/schemas/GoogleAuthRequest'
       responses:
         '200':
-
           description: Authentication successful
           headers:
             Set-Cookie:
@@ -220,57 +219,33 @@ components:
             message:
               type: string
 
-          description: Cleared
-  /auth/google-auth:
-    post:
-      summary: Authenticate user with Google token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token:
-                  type: string
-                role:
-                  type: string
-              required:
-                - token
-      responses:
-        '200':
-          description: Access token returned
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
-        '400':
-          description: Invalid Google token
-        '401':
-          description: User not confirmed or not found
-  /auth/confirm-email/{token}:
-    get:
-      summary: Confirm user email by token
-      parameters:
-        - in: path
-          name: token
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Email confirmed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Invalid confirmation token
-        '404':
-          description: User not found
+    Category:
+      type: object
+      required:
+        - name
+        - appearance
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3a"
+        name:
+          type: string
+          example: "Programming"
+        appearance:
+          type: object
+          required:
+            - icon
+            - color
+          properties:
+            icon:
+              type: string
+              example: "mocked-path-to-icon"
+            color:
+              type: string
+              example: "#66C42C"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
