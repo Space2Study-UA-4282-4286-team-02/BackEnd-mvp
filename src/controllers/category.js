@@ -1,14 +1,14 @@
 const categoryService = require('~/services/category')
 const { createBadRequestError } = require('~/utils/errorsHelper')
 
-const parseQueryNumber = (value) => {
+const parseQueryNumber = (value, minValue = 0) => {
   if (value === undefined) {
     return undefined
   }
 
   const parsed = parseInt(value, 10)
 
-  if (Number.isNaN(parsed) || parsed < 0) {
+  if (Number.isNaN(parsed) || parsed < minValue) {
     throw createBadRequestError()
   }
 
@@ -24,8 +24,8 @@ const getCategories = async (req, res) => {
 
   const query = {
     name: name || '',
-    skip: parseQueryNumber(skip),
-    limit: parseQueryNumber(limit)
+    skip: parseQueryNumber(skip, 0),
+    limit: parseQueryNumber(limit, 1)
   }
 
   const categories = await categoryService.getCategories(query)

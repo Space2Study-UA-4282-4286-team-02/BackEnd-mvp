@@ -65,6 +65,12 @@ describe('Category controller', () => {
       expectError(400, BAD_REQUEST, response)
     })
 
+    it('should throw BAD_REQUEST for zero limit', async () => {
+      const response = await app.get(`${endpointUrl}?limit=0`).set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(400, BAD_REQUEST, response)
+    })
+
     it('should throw UNAUTHORIZED', async () => {
       const response = await app.get(endpointUrl)
 
