@@ -95,4 +95,41 @@ describe('Category controller', () => {
       expectError(403, FORBIDDEN, response)
     })
   })
+
+  describe(`GET ${endpointUrl}/names`, () => {
+    it('should return category names with subjects', async () => {
+      const categoryWithSubject = await seedCategories()
+
+      const response = await app.get(`${endpointUrl}/names`).set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toHaveLength(1)
+      expect(response.body[0]._id.toString()).toBe(categoryWithSubject._id.toString())
+      expect(response.body[0].name).toBe(categoryWithSubject.name)
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.get(`${endpointUrl}/names`)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app.get(`${endpointUrl}/names`).set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
 })

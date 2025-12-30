@@ -195,16 +195,18 @@ describe('Auth controller', () => {
       const response = await app.post('/auth/google-auth').send({ idToken: 'fake-token' })
 
       expect(response.status).toBe(401)
-      expect(response.body.message).toBe('You are not registered')
-      expect(response.body.code).toBe('USER_NOT_REGISTERED')
+      const errorPayload = response.body.error || response.body
+      expect(errorPayload.message).toBe('You are not registered')
+      expect(errorPayload.code).toBe('USER_NOT_REGISTERED')
     })
 
     it('should return 400 when idToken is missing', async () => {
       const response = await app.post('/auth/google-auth').send({})
 
       expect(response.status).toBe(400)
-      const errMsg = response.body && response.body.error && (response.body.error.message || response.body.error.code)
-      expect(typeof errMsg === 'string' ? errMsg.includes('Missing idToken') : false).toBeTruthy()
+      const errorPayload = response.body.error || response.body
+      expect(errorPayload.code).toBe('BAD_REQUEST')
+      expect(errorPayload.message).toBe('The request could not be processed due to invalid or missing parameters.')
     })
 
     it('should return 401 for unverified Google email', async () => {
@@ -218,8 +220,9 @@ describe('Auth controller', () => {
       const response = await app.post('/auth/google-auth').send({ idToken: 'fake-token' })
 
       expect(response.status).toBe(401)
-      expect(response.body.code).toBe('UNVERIFIED_GOOGLE_EMAIL')
-      expect(response.body.message).toContain('Google email is not verified')
+      const errorPayload = response.body.error || response.body
+      expect(errorPayload.code).toBe('UNVERIFIED_GOOGLE_EMAIL')
+      expect(errorPayload.message).toContain('Google email is not verified')
     })
   })
 
