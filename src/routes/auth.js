@@ -9,7 +9,6 @@ const signupValidationSchema = require('~/validation/schemas/signup')
 const { loginValidationSchema } = require('~/validation/schemas/login')
 const resetPasswordValidationSchema = require('~/validation/schemas/resetPassword')
 const forgotPasswordValidationSchema = require('~/validation/schemas/forgotPassword')
-const googleAuthValidationSchema = require('~/validation/schemas/googleAuth')
 
 router.post(
   '/signup',
@@ -19,13 +18,7 @@ router.post(
 )
 router.post('/login', validationMiddleware(loginValidationSchema), asyncWrapper(authController.login))
 
-router.post('/google-auth', asyncWrapper(authController.googleLogin))
-
-router.post(
-  '/google-auth',
-  validationMiddleware(googleAuthValidationSchema),
-  asyncWrapper(authController.googleAuth)
-)
+router.post('/google-auth', asyncWrapper(authController.googleAuthHandler))
 
 router.post('/logout', asyncWrapper(authController.logout))
 router.get('/refresh', asyncWrapper(authController.refreshAccessToken))

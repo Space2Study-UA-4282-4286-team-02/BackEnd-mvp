@@ -22,12 +22,6 @@ const categoriesAggregateOptions = (query) => {
       $sort: { totalOffers: -1, updatedAt: -1 }
     },
     {
-      $skip: parseInt(skip)
-    },
-    {
-      $limit: parseInt(limit)
-    },
-    {
       $project: {
         subjects: 0
       }
