@@ -1,9 +1,10 @@
 const { serverInit, serverCleanup, stopServer } = require('~/test/setup')
 const { expectError } = require('~/test/helpers')
-const { UNAUTHORIZED, FORBIDDEN, BAD_REQUEST } = require('~/consts/errors')
+const { UNAUTHORIZED, FORBIDDEN, BAD_REQUEST, DOCUMENT_NOT_FOUND, INVALID_ID } = require('~/consts/errors')
 const testUserAuthentication = require('~/utils/testUserAuth')
 const Category = require('~/models/category')
 const Subject = require('~/models/subject')
+const mongoose = require('mongoose')
 const {
   roles: { STUDENT, ADMIN }
 } = require('~/consts/auth')
@@ -128,6 +129,63 @@ describe('Category controller', () => {
       })
 
       const response = await app.get(`${endpointUrl}/names`).set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
+
+  describe(`GET ${endpointUrl}/:id`, () => {
+    it('should return category by id', async () => {
+      const categoryWithSubject = await seedCategories()
+
+      const response = await app.get(`${endpointUrl}/${categoryWithSubject._id}`).set('Cookie', [
+        `accessToken=${accessToken}`
+      ])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body._id.toString()).toBe(categoryWithSubject._id.toString())
+      expect(response.body.name).toBe(categoryWithSubject.name)
+    })
+
+    it('should throw INVALID_ID', async () => {
+      const response = await app.get(`${endpointUrl}/not-a-mongo-id`).set('Cookie', [
+        `accessToken=${accessToken}`
+      ])
+
+      expectError(400, INVALID_ID, response)
+    })
+
+    it('should throw DOCUMENT_NOT_FOUND', async () => {
+      const nonExistingId = new mongoose.Types.ObjectId()
+      const response = await app.get(`${endpointUrl}/${nonExistingId}`).set('Cookie', [
+        `accessToken=${accessToken}`
+      ])
+
+      expectError(404, DOCUMENT_NOT_FOUND(['Category']), response)
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.get(`${endpointUrl}/1234567890abcdef12345678`)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app.get(`${endpointUrl}/1234567890abcdef12345678`).set('Cookie', [
+        `accessToken=${adminAccessToken}`
+      ])
 
       expectError(403, FORBIDDEN, response)
     })

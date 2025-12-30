@@ -156,6 +156,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /categories/{id}:
+    get:
+      summary: Get category by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  appearance:
+                    type: object
+                    properties:
+                      icon:
+                        type: string
+                      color:
+                        type: string
+                  totalOffers:
+                    type: object
+                    properties:
+                      student:
+                        type: integer
+                      tutor:
+                        type: integer
+                  createdAt:
+                    type: string
+                  updatedAt:
+                    type: string
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /categories/names:
     get:
       summary: Get category names
