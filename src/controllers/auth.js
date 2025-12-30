@@ -1,6 +1,6 @@
 const authService = require('~/services/auth')
 const { oneDayInMs } = require('~/consts/auth')
-const { verifyGoogleIdToken } = require('~/services/googleAuth')
+const googleAuthService = require('~/services/googleAuth')
 const {
   config: { COOKIE_DOMAIN }
 } = require('~/configs/config')
@@ -40,38 +40,58 @@ const login = async (req, res) => {
 }
 
 const googleLogin = async (req, res) => {
- const idToken =
-  req.body.idToken ||
-  req.body.id_token ||
-  req.body.credential ||
-  req.body.token ||
-  (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  const legacyToken = req.body.token
+  const idToken =
+    req.body.idToken ||
+    req.body.id_token ||
+    req.body.credential ||
+    (req.headers.authorization && req.headers.authorization.split(' ')[1])
+
+  if (!idToken && legacyToken) {
+    const tokens = await authService.googleAuth(legacyToken)
+
+    res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
+    res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+
+    delete tokens.refreshToken
+    return res.status(200).json(tokens)
+  }
 
   if (!idToken) {
     return res.status(400).json({
-      error: { message: 'Missing idToken' },
-    });
+      error: { message: 'Missing idToken' }
+    })
   }
 
-  const payload = await verifyGoogleIdToken(idToken);
+  try {
+    const payload = await googleAuthService.verifyGoogleIdToken(idToken)
 
-  if (!payload?.email || !payload?.sub) {
-    return res.status(401).json({
-      error: { message: 'Invalid Google token payload' },
-    });
+    if (!payload?.email || !payload?.sub) {
+      return res.status(401).json({
+        error: { message: 'Invalid Google token payload' }
+      })
+    }
+
+    const email = payload.email.toLowerCase()
+    const googleId = payload.sub
+
+    const tokens = await authService.googleLogin(email, googleId)
+
+    res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
+    res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+
+    delete tokens.refreshToken
+    return res.status(200).json(tokens)
+  } catch (err) {
+    const status = err && err.status ? err.status : 500
+    return res.status(status).json({
+      error: {
+        message: err && err.message ? err.message : 'Google authentication failed',
+        code: err && err.code ? err.code : undefined
+      }
+    })
   }
-
-  const email = payload.email.toLowerCase();
-  const googleId = payload.sub;
-
-  const tokens = await authService.googleLogin(email, googleId);
-
-  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS);
-  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS);
-
-  delete tokens.refreshToken;
-  res.status(200).json(tokens);
-};
+}
 
 
 const logout = async (req, res) => {
