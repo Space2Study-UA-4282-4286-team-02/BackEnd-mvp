@@ -3,6 +3,9 @@ const { Schema, model } = require('mongoose')
 const { CATEGORY } = require('~/consts/models')
 const { FIELD_CANNOT_BE_EMPTY, FIELD_CANNOT_BE_LONGER, FIELD_CANNOT_BE_SHORTER } = require('~/consts/errors')
 
+const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/
+const ICON_NAME_REGEX = /^[a-z0-9-]+$/i
+
 const categorySchema = new Schema(
   {
     name: {
@@ -13,20 +16,24 @@ const categorySchema = new Schema(
     },
     appearance: {
       icon: {
-        type: String
+        type: String,
+        match: [ICON_NAME_REGEX, 'Icon must contain only letters, numbers, or dashes.']
       },
       color: {
-        type: String
+        type: String,
+        match: [HEX_COLOR_REGEX, 'Color must be a valid hex value like #1E88E5.']
       }
     },
     totalOffers: {
       student: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
       },
       tutor: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
       }
     }
   },
