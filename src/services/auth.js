@@ -61,48 +61,48 @@ const authService = {
 
     return tokens
   },
-
-   googleLogin: async (email, googleId, opts = {}) => {
-    let user = await getUserByEmail(email);
+  
+  googleLogin: async (email, googleId, opts = {}) => {
+    let user = await getUserByEmail(email)
 
     if (!user) {
       throw createError(401, {
         code: 'USER_NOT_REGISTERED',
         message: 'You are not registered',
-      });
+      })
     }
 
     if (!user.googleId) {
-      await privateUpdateUser(user._id, { googleId });
-      user.googleId = googleId;
+      await privateUpdateUser(user._id, { googleId })
+      user.googleId = googleId
     } else if (user.googleId !== googleId) {
       throw createError(403, {
         code: 'GOOGLE_ACCOUNT_MISMATCH',
         message: 'Google account mismatch',
-      });
+      })
     }
 
-    const { _id, lastLoginAs, isFirstLogin } = user;
+    const { _id, lastLoginAs, isFirstLogin } = user
 
     const tokens = tokenService.generateTokens({
       id: _id,
       role: lastLoginAs || 'student',
       isFirstLogin,
-    });
+    })
 
     await tokenService.saveToken(
       _id,
       tokens.refreshToken,
       REFRESH_TOKEN
-    );
+    )
 
     if (isFirstLogin) {
-      await privateUpdateUser(_id, { isFirstLogin: false });
+      await privateUpdateUser(_id, { isFirstLogin: false })
     }
 
-    await privateUpdateUser(_id, { lastLogin: new Date() });
+    await privateUpdateUser(_id, { lastLogin: new Date() })
 
-    return tokens;
+    return tokens
   },
   
 
@@ -184,6 +184,16 @@ const authService = {
 
     await privateUpdateUser(user._id, { isEmailConfirmed: true })
     await tokenService.removeConfirmToken(confirmToken)
+  },
+
+  getMe: async (userId) => {
+    const user = await getUserById(userId)
+
+    if (!user) {
+      throw createError(404, USER_NOT_FOUND)
+    }
+
+    return user
   },
 
   googleAuth: async (token) => {
