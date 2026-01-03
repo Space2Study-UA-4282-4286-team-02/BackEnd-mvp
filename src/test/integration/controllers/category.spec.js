@@ -190,4 +190,69 @@ describe('Category controller', () => {
       expectError(403, FORBIDDEN, response)
     })
   })
+
+  describe(`GET ${endpointUrl}/:id/subjects/names`, () => {
+    it('should return subject names by category id', async () => {
+      const categoryWithSubject = await seedCategories()
+      const subject = await Subject.findOne({ category: categoryWithSubject._id }).lean().exec()
+
+      const response = await app
+        .get(`${endpointUrl}/${categoryWithSubject._id}/subjects/names`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toHaveLength(1)
+      expect(response.body[0]._id.toString()).toBe(subject._id.toString())
+      expect(response.body[0].name).toBe(subject.name)
+    })
+
+    it('should throw INVALID_ID', async () => {
+      const response = await app
+        .get(`${endpointUrl}/not-a-mongo-id/subjects/names`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(400, INVALID_ID, response)
+    })
+
+    it('should throw BAD_REQUEST when category id is missing', async () => {
+      const response = await app.get(`${endpointUrl}/subjects/names`).set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(400, BAD_REQUEST, response)
+    })
+
+    it('should throw DOCUMENT_NOT_FOUND', async () => {
+      const nonExistingId = new mongoose.Types.ObjectId()
+      const response = await app
+        .get(`${endpointUrl}/${nonExistingId}/subjects/names`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(404, DOCUMENT_NOT_FOUND(['Category']), response)
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.get(`${endpointUrl}/1234567890abcdef12345678/subjects/names`)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .get(`${endpointUrl}/1234567890abcdef12345678/subjects/names`)
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
 })
