@@ -188,6 +188,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /categories:
+    post:
+      tags:
+        - Categories
+      summary: Create category (Admin only)
+      description: Create a new category. Only authenticated users with the Admin role can create categories.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+            examples:
+              createExample:
+                summary: Example create request
+                value:
+                  name: "Programming"
+                  slug: "programming"
+                  description: "All programming related courses"
+                  parent: null
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error (bad request)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidExample:
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Category validation failed"
+                      details:
+                        name: "Path `name` is required."
+        '403':
+          description: Forbidden — user must be Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                forbiddenExample:
+                  value:
+                    error:
+                      code: "FORBIDDEN"
+                      message: "You do not have permission to perform this action"
+        '409':
+          description: Conflict — duplicate category (unique field already exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: DOCUMENT_ALREADY_EXISTS
+                      message:
+                        type: string
+                        example: Category with the same unique field already exists
+                      details:
+                        type: object
+              examples:
+                duplicateExample:
+                  value:
+                    error:
+                      code: "DOCUMENT_ALREADY_EXISTS"
+                      message: "Category with the same unique field already exists"
+                      details:
+                        slug: "programming"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     GoogleAuthRequest:
@@ -249,3 +337,32 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    CategoryCreate:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: "Programming"
+        slug:
+          type: string
+          description: "URL-friendly identifier (lowercase, hyphens)"
+          example: "programming"
+          pattern: "^[a-z0-9-]+$"
+        description:
+          type: string
+          example: "All programming related courses"
+        parent:
+          type: string
+          nullable: true
+          description: "Parent category _id (optional)"
+          example: null
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
