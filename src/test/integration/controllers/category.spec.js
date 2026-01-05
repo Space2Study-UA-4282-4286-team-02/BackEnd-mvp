@@ -60,8 +60,7 @@ describe('POST /categories (integration, mocked model)', () => {
       this.save = jest.fn().mockResolvedValue({
         _id: '1',
         name: data.name,
-        slug: data.slug,
-        toObject: () => ({ _id: '1', name: data.name, slug: data.slug })
+        toObject: () => ({ _id: '1', name: data.name })
       })
     })
 
@@ -69,15 +68,12 @@ describe('POST /categories (integration, mocked model)', () => {
       .post('/categories')
       .set('Cookie', [`accessToken=${adminToken}`])
       .send({
-        name: 'Integration Category',
-        slug: 'integration-category',
-        description: 'created in integration test'
+        name: 'Integration Category'
       })
 
     expect(res.status).toBe(201)
     expect(res.body).toHaveProperty('_id')
     expect(res.body.name).toBe('Integration Category')
-    expect(res.body.slug).toBe('integration-category')
   })
 
   test('400 — invalid body returns validation error', async () => {
@@ -85,8 +81,7 @@ describe('POST /categories (integration, mocked model)', () => {
     validationErr.name = 'ValidationError'
     validationErr.message = 'Category validation failed: name: Path `name` is required.'
     validationErr.errors = {
-      name: { message: 'The name field cannot be empty.' },
-      slug: { message: 'The slug field cannot be empty.' }
+      name: { message: 'The name field cannot be empty.' }
     }
 
     Category.mockImplementation(function (data) {
@@ -111,18 +106,17 @@ describe('POST /categories (integration, mocked model)', () => {
       .post('/categories')
       .set('Cookie', [`accessToken=${userToken}`])
       .send({
-        name: 'Should Not Create',
-        slug: 'should-not-create'
+        name: 'Should Not Create'
       })
 
     expect(res.status).toBe(403)
     expect(res.body).toHaveProperty('error')
   })
 
-  test('409 — duplicate category (same slug) returns conflict', async () => {
+  test('409 — duplicate category (same name) returns conflict', async () => {
     const mongoErr = new Error('E11000 duplicate key error')
     mongoErr.code = 11000
-    mongoErr.keyValue = { slug: 'dup-slug' }
+    mongoErr.keyValue = { name: 'dup-name' }
 
     Category.mockImplementation(function (data) {
       this.data = data
@@ -132,7 +126,7 @@ describe('POST /categories (integration, mocked model)', () => {
     const res = await request(serverApp)
       .post('/categories')
       .set('Cookie', [`accessToken=${adminToken}`])
-      .send({ name: 'Dup', slug: 'dup-slug' })
+      .send({ name: 'Dup' })
 
     expect(res.status).toBe(409)
     expect(res.body).toHaveProperty('error')

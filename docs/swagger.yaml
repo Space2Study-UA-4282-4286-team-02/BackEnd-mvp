@@ -192,27 +192,30 @@ paths:
     post:
       tags:
         - Categories
-      summary: Create category (Admin only)
-      description: Create a new category. Only authenticated users with the Admin role can create categories.
+      summary: Create Category
+      description: >
+        Create a new category. Accessible only to authenticated users with role **Admin**.
       security:
-        - cookieAuth: []
+        - cookieAuth: []        
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
             examples:
-              createExample:
-                summary: Example create request
+              minimal:
                 value:
-                  name: "Programming"
-                  slug: "programming"
-                  description: "All programming related courses"
-                  parent: null
+                  name: "Utilities"
+              full:
+                value:
+                  name: "Home"
+                  appearance:
+                    icon: "icons/home.svg"
+                    color: "#ff0000"
       responses:
         '201':
-          description: Category created
+          description: Category created successfully
           content:
             application/json:
               schema:
@@ -223,52 +226,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalidExample:
-                  value:
-                    error:
-                      code: "VALIDATION_ERROR"
-                      message: "Category validation failed"
-                      details:
-                        name: "Path `name` is required."
-        '403':
-          description: Forbidden — user must be Admin
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                forbiddenExample:
-                  value:
-                    error:
-                      code: "FORBIDDEN"
-                      message: "You do not have permission to perform this action"
-        '409':
-          description: Conflict — duplicate category (unique field already exists)
+        '403':
+          description: Forbidden (authenticated but not Admin)
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: object
-                    properties:
-                      code:
-                        type: string
-                        example: DOCUMENT_ALREADY_EXISTS
-                      message:
-                        type: string
-                        example: Category with the same unique field already exists
-                      details:
-                        type: object
-              examples:
-                duplicateExample:
-                  value:
-                    error:
-                      code: "DOCUMENT_ALREADY_EXISTS"
-                      message: "Category with the same unique field already exists"
-                      details:
-                        slug: "programming"
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict — category with the same unique field already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal server error
           content:
@@ -277,6 +252,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: >-
+        Authentication cookie (HttpOnly) containing JWT access token.
   schemas:
     GoogleAuthRequest:
       type: object
@@ -306,6 +288,22 @@ components:
               type: string
             message:
               type: string
+            details:
+              type: object
+              additionalProperties: true
+
+    Appearance:
+      type: object
+      required:
+        - icon
+        - color
+      properties:
+        icon:
+          type: string
+          example: "mocked-path-to-icon"
+        color:
+          type: string
+          example: "#66C42C"
 
     Category:
       type: object
@@ -320,17 +318,7 @@ components:
           type: string
           example: "Programming"
         appearance:
-          type: object
-          required:
-            - icon
-            - color
-          properties:
-            icon:
-              type: string
-              example: "mocked-path-to-icon"
-            color:
-              type: string
-              example: "#66C42C"
+          $ref: '#/components/schemas/Appearance'
         createdAt:
           type: string
           format: date-time
@@ -338,31 +326,16 @@ components:
           type: string
           format: date-time
 
-    CategoryCreate:
+    CategoryCreateRequest:
       type: object
       required:
         - name
-        - slug
       properties:
         name:
           type: string
+          description: Unique category name (1..255 chars)
+          minLength: 1
+          maxLength: 255
           example: "Programming"
-        slug:
-          type: string
-          description: "URL-friendly identifier (lowercase, hyphens)"
-          example: "programming"
-          pattern: "^[a-z0-9-]+$"
-        description:
-          type: string
-          example: "All programming related courses"
-        parent:
-          type: string
-          nullable: true
-          description: "Parent category _id (optional)"
-          example: null
-
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: accessToken
+        appearance:
+          $ref: '#/components/schemas/Appearance'
