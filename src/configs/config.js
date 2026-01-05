@@ -13,8 +13,10 @@ const config = {
   JWT_RESET_SECRET: process.env.JWT_RESET_SECRET,
   JWT_RESET_EXPIRES_IN: process.env.JWT_RESET_EXPIRES_IN,
   JWT_CONFIRM_SECRET: process.env.JWT_CONFIRM_SECRET,
-  JWT_CONFIRM_EXPIRES_IN: process.env.JWT_CONFIRM_EXPIRES_IN
-}
+  JWT_CONFIRM_EXPIRES_IN: process.env.JWT_CONFIRM_EXPIRES_IN,
+  CSC_API_KEY: process.env.CSC_API_KEY || '',
+  CSC_BASE_URL: process.env.CSC_BASE_URL || 'https://api.countrystatecity.in/v1'
+};
 
 const gmailCredentials = {
   user: process.env.MAIL_USER,
