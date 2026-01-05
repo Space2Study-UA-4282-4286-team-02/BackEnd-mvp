@@ -15,6 +15,22 @@ async function getCountries(req, res, next) {
   }
 }
 
+async function getCities(req, res, next) {
+  try {
+    const { countryCode } = req.params;
+    const cities = await locationService.getCities(countryCode);
+
+    const mapped = (cities || []).map((city) => ({
+      name: city.name,
+    }));
+
+    return res.status(200).json(mapped);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
-  getCountries
+  getCountries,
+  getCities,
 };

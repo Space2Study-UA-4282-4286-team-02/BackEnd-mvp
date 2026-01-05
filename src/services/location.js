@@ -56,6 +56,19 @@ async function getCountries() {
   return data;
 }
 
+async function getCities(countryCode) {
+  if(!countryCode) {
+    throw createError(400, 'Country code is required');
+  }
+
+  const data = await fetchFromCsc(`/countries/${countryCode}/cities`);
+  return data.map(city => ({
+    id: city.id,
+    name: city.name,
+  }));
+}
+
 module.exports = {
-  getCountries
+  getCountries,
+  getCities,
 };
