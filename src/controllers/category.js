@@ -47,8 +47,21 @@ const getCategoryById = async (req, res) => {
   res.status(200).json(category)
 }
 
+const getSubjectNamesByCategoryId = async (req, res) => {
+  const { id } = req.params
+
+  if (!id) {
+    throw createBadRequestError()
+  }
+
+  const subjects = await categoryService.getSubjectNamesByCategoryId(id)
+
+  res.status(200).json(subjects)
+}
+
 module.exports = {
   getCategories,
   getCategoriesNames,
-  getCategoryById
+  getCategoryById,
+  getSubjectNamesByCategoryId
 }

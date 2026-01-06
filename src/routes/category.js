@@ -15,6 +15,7 @@ router.use(restrictTo(STUDENT, TUTOR))
 
 router.get('/', asyncWrapper(categoryController.getCategories))
 router.get('/names', asyncWrapper(categoryController.getCategoriesNames))
+router.get('/:id?/subjects/names', asyncWrapper(categoryController.getSubjectNamesByCategoryId))
 router.get('/:id', asyncWrapper(categoryController.getCategoryById))
 
 module.exports = router

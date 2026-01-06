@@ -174,9 +174,10 @@ const googleAuthHandler = async (req, res) => {
 
   if (!idToken && !token) {
     return res.status(400).json({
-      status: 400,
-      code: 'BAD_REQUEST',
-      message: 'The request could not be processed due to invalid or missing parameters.'
+      error: {
+        code: 'BAD_REQUEST',
+        message: 'The request could not be processed due to invalid or missing parameters.'
+      }
     })
   }
 
