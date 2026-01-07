@@ -516,3 +516,63 @@ components:
               type: string
             message:
               type: string
+            details:
+              type: object
+              additionalProperties: true
+
+    Appearance:
+      type: object
+      required:
+        - icon
+        - color
+      properties:
+        icon:
+          type: string
+          example: "mocked-path-to-icon"
+        color:
+          type: string
+          example: "#66C42C"
+
+    Category:
+      type: object
+      required:
+        - name
+        - appearance
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3a"
+        name:
+          type: string
+          example: "Programming"
+        appearance:
+          $ref: '#/components/schemas/Appearance'
+        totalOffers:
+          type: object
+          properties:
+            student:
+              type: integer
+              example: 0
+            tutor:
+              type: integer
+              example: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Unique category name (1..255 chars)
+          minLength: 1
+          maxLength: 255
+          example: "Programming"
+        appearance:
+          $ref: '#/components/schemas/Appearance'
