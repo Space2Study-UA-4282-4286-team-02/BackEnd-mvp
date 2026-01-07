@@ -8,17 +8,22 @@ const {
   FIELD_CANNOT_BE_LONGER
 } = require('~/consts/errors')
 
+const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/
+const ICON_NAME_REGEX = /^[a-z0-9-]+$/i
+
 const AppearanceSchema = new Schema(
   {
     icon: {
       type: String,
       required: [true, FIELD_CANNOT_BE_EMPTY('icon')],
-      default: 'mocked-path-to-icon'
+      default: 'mocked-path-to-icon',
+      match: [ICON_NAME_REGEX, 'Icon must contain only letters, numbers, or dashes.']
     },
     color: {
       type: String,
       required: [true, FIELD_CANNOT_BE_EMPTY('color')],
-      default: '#66C42C'
+      default: '#66C42C',
+      match: [HEX_COLOR_REGEX, 'Color must be a valid hex value like #1E88E5.']
     }
   },
   { _id: false }
@@ -38,6 +43,19 @@ const categorySchema = new Schema(
       type: AppearanceSchema,
       required: true,
       default: () => ({})
+    },
+
+    totalOffers: {
+      student: {
+        type: Number,
+        default: 0,
+        min: 0
+      },
+      tutor: {
+        type: Number,
+        default: 0,
+        min: 0
+      }
     }
   },
   {

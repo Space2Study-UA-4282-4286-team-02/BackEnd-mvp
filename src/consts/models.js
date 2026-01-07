@@ -1,6 +1,7 @@
 const refs = {
   USER: 'User',
   OFFER: 'Offer',
+  CATEGORY: 'Category',
   SUBJECT: 'Subject',
   TOKEN: 'Token',
   ADMIN_INVITATION: 'AdminInvitation',
