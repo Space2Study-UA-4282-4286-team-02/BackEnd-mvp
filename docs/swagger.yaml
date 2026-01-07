@@ -1,4 +1,5 @@
 openapi: 3.0.0
+
 info:
   title: BackEnd-mvp API
   version: "1.0.0"
@@ -77,6 +78,233 @@ paths:
         '204':
           description: Deleted
 
+  /categories:
+    get:
+      summary: Get categories
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: name
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        appearance:
+                          type: object
+                          properties:
+                            icon:
+                              type: string
+                            color:
+                              type: string
+                        totalOffers:
+                          type: object
+                          properties:
+                            student:
+                              type: integer
+                            tutor:
+                              type: integer
+                        createdAt:
+                          type: string
+                        updatedAt:
+                          type: string
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/{id}:
+    get:
+      summary: Get category by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  appearance:
+                    type: object
+                    properties:
+                      icon:
+                        type: string
+                      color:
+                        type: string
+                  totalOffers:
+                    type: object
+                    properties:
+                      student:
+                        type: integer
+                      tutor:
+                        type: integer
+                  createdAt:
+                    type: string
+                  updatedAt:
+                    type: string
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/names:
+    get:
+      summary: Get category names
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of category names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/{id}/subjects/names:
+    get:
+      summary: Get subject names by category id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of subject names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /chats/{id}/messages:
     get:
       summary: Get messages for a chat
@@ -143,8 +371,7 @@ paths:
       description: >
         Accepts a Google ID token (JWT) from the client, verifies it using
         google-auth-library OAuth2Client (audience = GOOGLE_CLIENT_ID),
-        extracts the token payload (email, sub) and performs authentication
-        via authService.googleLogin.
+        extracts the token payload (email, sub) and performs authentication.
       requestBody:
         required: true
         content:
@@ -188,7 +415,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /auth/confirm-email/{token}:
+    get:
+      summary: Confirm user email by token
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email confirmed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Invalid confirmation token
+        '404':
+          description: User not found
+
+  /locations/countries:
+    get:
+      tags:
+        - Locations
+      summary: Get list of countries
+      description: Returns list of countries from countrystatecity.in
+      responses:
+        '200':
+          description: A JSON array of countries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Ukraine
+                    iso2:
+                      type: string
+                      example: UA
+                    iso3:
+                      type: string
+                      example: UKR
+                    phone_code:
+                      type: string
+                      description: International phone code for the country (can include '+')
+                      example: "+380"
+              examples:
+                sample:
+                  summary: Example countries response
+                  value:
+                    - name: "Ukraine"
+                      iso2: "UA"
+                      iso3: "UKR"
+                      phone_code: "+380"
+                    - name: "United States"
+                      iso2: "US"
+                      iso3: "USA"
+                      phone_code: "+1"
+
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
   schemas:
     GoogleAuthRequest:
       type: object
@@ -218,6 +516,22 @@ components:
               type: string
             message:
               type: string
+            details:
+              type: object
+              additionalProperties: true
+
+    Appearance:
+      type: object
+      required:
+        - icon
+        - color
+      properties:
+        icon:
+          type: string
+          example: "mocked-path-to-icon"
+        color:
+          type: string
+          example: "#66C42C"
 
     Category:
       type: object
@@ -232,20 +546,33 @@ components:
           type: string
           example: "Programming"
         appearance:
+          $ref: '#/components/schemas/Appearance'
+        totalOffers:
           type: object
-          required:
-            - icon
-            - color
           properties:
-            icon:
-              type: string
-              example: "mocked-path-to-icon"
-            color:
-              type: string
-              example: "#66C42C"
+            student:
+              type: integer
+              example: 0
+            tutor:
+              type: integer
+              example: 0
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    CategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Unique category name (1..255 chars)
+          minLength: 1
+          maxLength: 255
+          example: "Programming"
+        appearance:
+          $ref: '#/components/schemas/Appearance'
