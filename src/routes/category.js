@@ -2,11 +2,21 @@ const router = require('express').Router()
 
 const asyncWrapper = require('~/middlewares/asyncWrapper')
 const { authMiddleware, restrictTo } = require('~/middlewares/auth')
+const isEntityValid = require('~/middlewares/entityValidation')
 const idValidation = require('~/middlewares/idValidation')
 const categoryController = require('~/controllers/category')
+const categoryValidation = require('~/validation/schemas/category')
 const {
-  roles: { STUDENT, TUTOR }
+  roles: { ADMIN, STUDENT, TUTOR }
 } = require('~/consts/auth')
+
+router.post(
+  '/',
+  authMiddleware,
+  restrictTo(ADMIN),
+  isEntityValid({ body: categoryValidation }),
+  asyncWrapper(categoryController.createCategory)
+)
 
 router.param('id', idValidation)
 

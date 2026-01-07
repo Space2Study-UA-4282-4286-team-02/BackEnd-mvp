@@ -67,7 +67,6 @@ const categorySchema = new Schema(
   }
 )
 
-
 categorySchema.index({ name: 1 }, { unique: true })
 
 categorySchema.post('save', function (error, doc, next) {

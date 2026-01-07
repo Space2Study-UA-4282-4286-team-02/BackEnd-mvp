@@ -6,6 +6,24 @@ const categoriesAggregateOptions = require('~/utils/categories/categoriesAggrega
 const categoryNamesAggregateOptions = require('~/utils/categories/categoryNamesAggregateOptions')
 
 const categoryService = {
+  createCategory: async (categoryData) => {
+    try {
+      const category = new Category(categoryData)
+      const saved = await category.save()
+      return saved.toObject()
+    } catch (err) {
+      if (err && err.code === 11000) {
+        const e = new Error('Category already exists')
+        e.code = 11000
+        e.status = 409
+        e.keyValue = err.keyValue
+        throw e
+      }
+
+      throw err
+    }
+  },
+
   getCategories: async (query) => {
     const [response] = await Category.aggregate(categoriesAggregateOptions(query)).exec()
     return response || { items: [], count: 0 }
