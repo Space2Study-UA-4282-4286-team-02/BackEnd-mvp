@@ -169,6 +169,30 @@ const googleAuth = async (req, res) => {
   res.status(200).json(tokens)
 }
 
+const googleAuthHandler = async (req, res) => {
+  const { token } = req.body || {}
+  const idToken =
+    req.body?.idToken ||
+    req.body?.id_token ||
+    req.body?.credential ||
+    (req.headers.authorization && req.headers.authorization.split(' ')[1])
+
+  if (!idToken && !token) {
+    return res.status(400).json({
+      error: {
+        code: 'BAD_REQUEST',
+        message: 'The request could not be processed due to invalid or missing parameters.'
+      }
+    })
+  }
+
+  if (!idToken && token) {
+    return googleAuth(req, res)
+  }
+
+  return googleLogin(req, res)
+}
+
 module.exports = {
   signup,
   login,
@@ -178,5 +202,6 @@ module.exports = {
   sendResetPasswordEmail,
   updatePassword,
   confirmEmail,
-  googleAuth
+  googleAuth,
+  googleAuthHandler
 }
