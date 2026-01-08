@@ -53,13 +53,18 @@ const getMe = async (req, res) => {
 
 
 const googleLogin = async (req, res) => {
-  const legacyToken = req.body.token
+   let legacyToken = req.body.token;
+  if (legacyToken && typeof legacyToken === 'object') {
+  legacyToken = legacyToken.credential || legacyToken.token || legacyToken.idToken || legacyToken.id_token || legacyToken.jwt || undefined;
+  }
+
   const idToken =
     req.body.idToken ||
     req.body.id_token ||
     req.body.credential ||
-    (req.headers.authorization && req.headers.authorization.split(' ')[1])
-
+    (legacyToken && typeof legacyToken === 'string' ? legacyToken : undefined) ||
+    (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    
   if (!idToken && legacyToken) {
     const tokens = await authService.googleAuth(legacyToken)
 

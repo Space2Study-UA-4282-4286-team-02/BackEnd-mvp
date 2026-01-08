@@ -1,5 +1,6 @@
 const User = require('~/models/user')
 const { createError } = require('~/utils/errorsHelper')
+const passwordService = require('~/services/password.service')
 
 const { DOCUMENT_NOT_FOUND, ALREADY_REGISTERED } = require('~/consts/errors')
 const filterAllowedFields = require('~/utils/filterAllowedFields')
@@ -50,13 +51,15 @@ const userService = {
       throw createError(409, ALREADY_REGISTERED)
     }
 
+     const hashedPassword = await passwordService.hashPassword(password)
+
     return await User.create({
       role,
       firstName,
       lastName,
       email,
       lastLoginAs: role,
-      password,
+      password: hashedPassword,
       appLanguage,
       isEmailConfirmed
     })
