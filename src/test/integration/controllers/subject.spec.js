@@ -1,6 +1,13 @@
 const { serverInit, serverCleanup, stopServer } = require('~/test/setup')
 const { expectError } = require('~/test/helpers')
-const { UNAUTHORIZED, FORBIDDEN, BAD_REQUEST, DOCUMENT_NOT_FOUND, INVALID_ID } = require('~/consts/errors')
+const {
+  UNAUTHORIZED,
+  FORBIDDEN,
+  BAD_REQUEST,
+  DOCUMENT_NOT_FOUND,
+  INVALID_ID,
+  FIELD_IS_NOT_DEFINED
+} = require('~/consts/errors')
 const testUserAuthentication = require('~/utils/testUserAuth')
 const Category = require('~/models/category')
 const Subject = require('~/models/subject')
@@ -227,6 +234,112 @@ describe('Subject controller', () => {
       const response = await app.get('/subjects/1234567890abcdef12345678').set('Cookie', [
         `accessToken=${adminAccessToken}`
       ])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
+
+  describe('POST /subjects', () => {
+    it('should create subject', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const category = await Category.create({
+        name: 'Mathematics',
+        appearance: { icon: 'math', color: '#111111' }
+      })
+
+      const payload = { name: 'Algebra', category: category._id.toString() }
+
+      const response = await app.post('/subjects').send(payload).set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expect(response.statusCode).toBe(201)
+      expect(response.body).toMatchObject(payload)
+      expect(response.body).toHaveProperty('_id')
+    })
+
+    it('should throw validation error for missing name', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app.post('/subjects').send({ category: '123' }).set('Cookie', [
+        `accessToken=${adminAccessToken}`
+      ])
+
+      expectError(422, FIELD_IS_NOT_DEFINED('name'), response)
+    })
+
+    it('should throw INVALID_ID for bad category', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .post('/subjects')
+        .send({ name: 'Algebra', category: 'bad-id' })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(400, INVALID_ID, response)
+    })
+
+    it('should throw DOCUMENT_NOT_FOUND for missing category', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .post('/subjects')
+        .send({ name: 'Algebra', category: new mongoose.Types.ObjectId().toString() })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(404, DOCUMENT_NOT_FOUND(['Category']), response)
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.post('/subjects').send({ name: 'Algebra', category: '1234567890abcdef12345678' })
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN', async () => {
+      const response = await app
+        .post('/subjects')
+        .send({ name: 'Algebra', category: '1234567890abcdef12345678' })
+        .set('Cookie', [`accessToken=${accessToken}`])
 
       expectError(403, FORBIDDEN, response)
     })

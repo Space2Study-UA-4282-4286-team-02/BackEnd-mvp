@@ -1,6 +1,7 @@
+const mongoose = require('mongoose')
 const Category = require('~/models/category')
 const Subject = require('~/models/subject')
-const { DOCUMENT_NOT_FOUND } = require('~/consts/errors')
+const { DOCUMENT_NOT_FOUND, INVALID_ID } = require('~/consts/errors')
 const { createError } = require('~/utils/errorsHelper')
 const getRegex = require('~/utils/getRegex')
 
@@ -40,6 +41,24 @@ const subjectService = {
     }
 
     return subject
+  },
+
+  createSubject: async (data) => {
+    const { name, category } = data
+
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      throw createError(400, INVALID_ID)
+    }
+
+    const categoryExists = await Category.exists({ _id: category }).exec()
+
+    if (!categoryExists) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Category.modelName]))
+    }
+
+    const subject = await Subject.create({ name, category })
+
+    return subject.toObject()
   }
 }
 
