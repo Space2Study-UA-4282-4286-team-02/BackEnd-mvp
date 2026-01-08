@@ -7,7 +7,8 @@ const {
   DOCUMENT_NOT_FOUND,
   INVALID_ID,
   FIELD_IS_NOT_DEFINED,
-  FIELD_IS_NOT_OF_PROPER_LENGTH
+  FIELD_IS_NOT_OF_PROPER_LENGTH,
+  BODY_IS_NOT_DEFINED
 } = require('~/consts/errors')
 const testUserAuthentication = require('~/utils/testUserAuth')
 const Category = require('~/models/category')
@@ -306,7 +307,7 @@ describe('Subject controller', () => {
         .send({ name: 'Algebra', category: 'bad-id' })
         .set('Cookie', [`accessToken=${adminAccessToken}`])
 
-      expectError(400, INVALID_ID, response)
+      expectError(422, FIELD_IS_NOT_OF_PROPER_LENGTH('category', { min: 24, max: 24 }), response)
     })
 
     it('should throw DOCUMENT_NOT_FOUND for missing category', async () => {
@@ -432,6 +433,27 @@ describe('Subject controller', () => {
         .set('Cookie', [`accessToken=${adminAccessToken}`])
 
       expectError(422, FIELD_IS_NOT_OF_PROPER_LENGTH('name', { min: 1, max: 50 }), response)
+    })
+
+    it('should throw BODY_IS_NOT_DEFINED for empty payload', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .patch('/subjects/1234567890abcdef12345678')
+        .send({})
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(422, BODY_IS_NOT_DEFINED, response)
     })
 
     it('should throw UNAUTHORIZED', async () => {

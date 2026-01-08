@@ -10,7 +10,7 @@ const { allowedSubjectFieldsForUpdate } = require('~/validation/services/subject
 const subjectService = {
   getSubjects: async ({ name = '', skip = 0, limit = 100, categoryId } = {}) => {
     if (categoryId) {
-      const categoryExists = await Category.exists({ _id: categoryId }).exec()
+      const categoryExists = await Category.exists({ _id: categoryId })
 
       if (!categoryExists) {
         throw createError(404, DOCUMENT_NOT_FOUND([Category.modelName]))
@@ -36,7 +36,7 @@ const subjectService = {
   },
 
   getSubjectById: async (id) => {
-    const subject = await Subject.findById(id).lean().exec()
+    const subject = await Subject.findById(id).lean()
 
     if (!subject) {
       throw createError(404, DOCUMENT_NOT_FOUND([Subject.modelName]))
@@ -52,7 +52,7 @@ const subjectService = {
       throw createError(400, INVALID_ID)
     }
 
-    const categoryExists = await Category.exists({ _id: category }).exec()
+    const categoryExists = await Category.exists({ _id: category })
 
     if (!categoryExists) {
       throw createError(404, DOCUMENT_NOT_FOUND([Category.modelName]))
@@ -71,29 +71,27 @@ const subjectService = {
         throw createError(400, INVALID_ID)
       }
 
-      const categoryExists = await Category.exists({ _id: filteredUpdateData.category }).exec()
+      const categoryExists = await Category.exists({ _id: filteredUpdateData.category })
 
       if (!categoryExists) {
         throw createError(404, DOCUMENT_NOT_FOUND([Category.modelName]))
       }
     }
 
-    const subject = await Subject.findById(id).exec()
+    const subject = await Subject.findById(id)
 
     if (!subject) {
       throw createError(404, DOCUMENT_NOT_FOUND([Subject.modelName]))
     }
 
-    for (let field in filteredUpdateData) {
-      subject[field] = filteredUpdateData[field]
-    }
+    Object.assign(subject, filteredUpdateData)
 
     await subject.validate()
     await subject.save()
   },
 
   deleteSubject: async (id) => {
-    const subject = await Subject.findByIdAndRemove(id).lean().exec()
+    const subject = await Subject.findByIdAndRemove(id)
 
     if (!subject) {
       throw createError(404, DOCUMENT_NOT_FOUND([Subject.modelName]))

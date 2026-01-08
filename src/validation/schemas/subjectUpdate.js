@@ -1,3 +1,5 @@
+const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
+
 const subjectUpdateValidationSchema = {
   name: {
     type: 'string',
@@ -9,7 +11,12 @@ const subjectUpdateValidationSchema = {
   },
   category: {
     type: 'string',
-    required: false
+    required: false,
+    length: {
+      min: 24,
+      max: 24
+    },
+    regex: OBJECT_ID_REGEX
   }
 }
 
