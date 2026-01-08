@@ -6,7 +6,8 @@ const {
   BAD_REQUEST,
   DOCUMENT_NOT_FOUND,
   INVALID_ID,
-  FIELD_IS_NOT_DEFINED
+  FIELD_IS_NOT_DEFINED,
+  FIELD_IS_NOT_OF_PROPER_LENGTH
 } = require('~/consts/errors')
 const testUserAuthentication = require('~/utils/testUserAuth')
 const Category = require('~/models/category')
@@ -339,6 +340,110 @@ describe('Subject controller', () => {
       const response = await app
         .post('/subjects')
         .send({ name: 'Algebra', category: '1234567890abcdef12345678' })
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
+
+  describe('PATCH /subjects/:id', () => {
+    it('should update subject', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const { categoryOne } = await seedSubjects()
+      const subject = await Subject.findOne({ category: categoryOne._id }).lean().exec()
+
+      const response = await app
+        .patch(`/subjects/${subject._id}`)
+        .send({ name: 'Updated Subject' })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expect(response.statusCode).toBe(204)
+    })
+
+    it('should throw INVALID_ID', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .patch('/subjects/not-a-mongo-id')
+        .send({ name: 'Updated Subject' })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(400, INVALID_ID, response)
+    })
+
+    it('should throw DOCUMENT_NOT_FOUND', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .patch(`/subjects/${new mongoose.Types.ObjectId().toString()}`)
+        .send({ name: 'Updated Subject' })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(404, DOCUMENT_NOT_FOUND(['Subject']), response)
+    })
+
+    it('should throw validation error for long name', async () => {
+      userIndex += 1
+      const adminAccessToken = await testUserAuthentication(app, {
+        role: ADMIN,
+        firstName: 'Admin',
+        lastName: `User${userIndex}`,
+        email: `admin${userIndex}@example.com`,
+        password: 'Password1@',
+        appLanguage: 'en',
+        isEmailConfirmed: true,
+        lastLoginAs: ADMIN
+      })
+
+      const response = await app
+        .patch('/subjects/1234567890abcdef12345678')
+        .send({ name: 'a'.repeat(51) })
+        .set('Cookie', [`accessToken=${adminAccessToken}`])
+
+      expectError(422, FIELD_IS_NOT_OF_PROPER_LENGTH('name', { min: 1, max: 50 }), response)
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.patch('/subjects/1234567890abcdef12345678').send({ name: 'Updated Subject' })
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN', async () => {
+      const response = await app
+        .patch('/subjects/1234567890abcdef12345678')
+        .send({ name: 'Updated Subject' })
         .set('Cookie', [`accessToken=${accessToken}`])
 
       expectError(403, FORBIDDEN, response)
