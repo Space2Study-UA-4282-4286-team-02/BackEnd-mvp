@@ -7,7 +7,7 @@ async function getCountries(req, res, next) {
       name: c.name,
       iso2: c.iso2,
       iso3: c.iso3,
-      phone_code: c.phone_code ?? c.phonecode
+      phone_code: c.phone_code
     }));
     return res.status(200).json(mapped);
   } catch (err) {
