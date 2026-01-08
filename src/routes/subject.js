@@ -22,6 +22,7 @@ router.patch(
   validationMiddleware(subjectUpdateValidation),
   asyncWrapper(subjectController.updateSubject)
 )
+router.delete('/:id', restrictTo(ADMIN), asyncWrapper(subjectController.deleteSubject))
 
 router.use(restrictTo(STUDENT, TUTOR))
 router.get('/:id', asyncWrapper(subjectController.getSubjectById))

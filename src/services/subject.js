@@ -90,6 +90,14 @@ const subjectService = {
 
     await subject.validate()
     await subject.save()
+  },
+
+  deleteSubject: async (id) => {
+    const subject = await Subject.findByIdAndRemove(id).lean().exec()
+
+    if (!subject) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Subject.modelName]))
+    }
   }
 }
 
