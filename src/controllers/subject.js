@@ -1,0 +1,40 @@
+const subjectService = require('~/services/subject')
+const { createBadRequestError } = require('~/utils/errorsHelper')
+
+const parseQueryNumber = (value, minValue = 0) => {
+  if (value === undefined) {
+    return undefined
+  }
+
+  const parsed = parseInt(value, 10)
+
+  if (Number.isNaN(parsed) || parsed < minValue) {
+    throw createBadRequestError()
+  }
+
+  return parsed
+}
+
+const getSubjects = async (req, res) => {
+  const { name, skip, limit } = req.query
+  const { id: categoryId } = req.params
+
+  if (name !== undefined && typeof name !== 'string') {
+    throw createBadRequestError()
+  }
+
+  const query = {
+    name: name || '',
+    skip: parseQueryNumber(skip, 0),
+    limit: parseQueryNumber(limit, 1),
+    categoryId
+  }
+
+  const subjects = await subjectService.getSubjects(query)
+
+  res.status(200).json(subjects)
+}
+
+module.exports = {
+  getSubjects
+}

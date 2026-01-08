@@ -254,6 +254,129 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /categories/subjects:
+    get:
+      summary: Get subjects
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: name
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of subjects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subject'
+        '400':
+          description: Invalid query params
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/{id}/subjects:
+    get:
+      summary: Get subjects by category id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: name
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of subjects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subject'
+        '400':
+          description: Invalid id or query params
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /categories/{id}/subjects/names:
     get:
       summary: Get subject names by category id
@@ -555,6 +678,34 @@ components:
               type: integer
               example: 0
 
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Subject:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3b"
+        name:
+          type: string
+          example: "Algebra"
+        category:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3a"
+        totalOffers:
+          type: object
+          properties:
+            student:
+              type: integer
+              example: 0
+            tutor:
+              type: integer
+              example: 0
         createdAt:
           type: string
           format: date-time
