@@ -1,5 +1,6 @@
 const subjectService = require('~/services/subject')
-const { createBadRequestError } = require('~/utils/errorsHelper')
+const { createBadRequestError, createError } = require('~/utils/errorsHelper')
+const { BODY_IS_NOT_DEFINED } = require('~/consts/errors')
 
 const parseQueryNumber = (value, minValue = 0) => {
   if (value === undefined) {
@@ -51,8 +52,21 @@ const createSubject = async (req, res) => {
 
 const updateSubject = async (req, res) => {
   const { id } = req.params
+  const updateData = req.body
 
-  await subjectService.updateSubject(id, req.body)
+  if (!updateData || Object.keys(updateData).length === 0) {
+    throw createError(422, BODY_IS_NOT_DEFINED)
+  }
+
+  await subjectService.updateSubject(id, updateData)
+
+  res.status(204).end()
+}
+
+const deleteSubject = async (req, res) => {
+  const { id } = req.params
+
+  await subjectService.deleteSubject(id)
 
   res.status(204).end()
 }
@@ -61,5 +75,6 @@ module.exports = {
   getSubjects,
   getSubjectById,
   createSubject,
-  updateSubject
+  updateSubject,
+  deleteSubject
 }

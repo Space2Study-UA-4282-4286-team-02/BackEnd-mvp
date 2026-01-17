@@ -94,3 +94,26 @@ describe('services/subject.updateSubject (unit)', () => {
     })
   })
 })
+
+describe('services/subject.deleteSubject (unit)', () => {
+  afterEach(() => {
+    jest.resetAllMocks()
+  })
+
+  test('should delete subject', async () => {
+    SubjectModel.findByIdAndRemove.mockResolvedValue({ _id: '1' })
+
+    await subjectService.deleteSubject('64b1c4f4e3a2b1c0d1e2f3a2')
+
+    expect(SubjectModel.findByIdAndRemove).toHaveBeenCalledWith('64b1c4f4e3a2b1c0d1e2f3a2')
+  })
+
+  test('should throw DOCUMENT_NOT_FOUND when subject missing', async () => {
+    SubjectModel.findByIdAndRemove.mockResolvedValue(null)
+
+    await expect(subjectService.deleteSubject('64b1c4f4e3a2b1c0d1e2f3a2')).rejects.toMatchObject({
+      status: 404,
+      code: DOCUMENT_NOT_FOUND(['Subject']).code
+    })
+  })
+})

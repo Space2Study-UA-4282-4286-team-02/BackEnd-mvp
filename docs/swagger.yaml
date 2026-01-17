@@ -377,49 +377,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /subjects/{id}:
-    get:
-      summary: Get subject by id
-      security:
-        - cookieAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Subject details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Subject'
-        '400':
-          description: Invalid id
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Subject not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
   /subjects:
     post:
       summary: Create subject
@@ -472,6 +429,47 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /subjects/{id}:
+    get:
+      summary: Get subject by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subject details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subject not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     patch:
       summary: Update subject
       description: >
@@ -519,6 +517,45 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '422':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete subject
+      description: >
+        Delete an existing subject. Accessible only to authenticated users with role **Admin**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Subject deleted successfully
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subject not found
           content:
             application/json:
               schema:
