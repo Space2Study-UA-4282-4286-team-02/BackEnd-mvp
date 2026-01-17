@@ -22,6 +22,19 @@ const lessonService = {
     return { items, count }
   },
 
+  getLessonById: async (id) => {
+    const lesson = await Lesson.findById(id)
+      .populate({ path: 'category', select: '_id name' })
+      .lean()
+      .exec()
+
+    if (!lesson) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Lesson.modelName]))
+    }
+
+    return lesson
+  },
+
   updateLesson: async (id, currentUserId, currentUserRole, updateData) => {
     const filteredUpdateData = filterAllowedFields(updateData, allowedLessonFieldsForUpdate)
 

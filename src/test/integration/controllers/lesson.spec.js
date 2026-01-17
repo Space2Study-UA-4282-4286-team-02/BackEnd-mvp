@@ -99,6 +99,67 @@ describe('Lesson controller', () => {
     })
   })
 
+  describe(`GET ${endpointUrl}/:id`, () => {
+    it('should return lesson by id', async () => {
+      const lesson = await Lesson.create({
+        ...lessonData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .get(`${endpointUrl}/${lesson._id}`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body).toMatchObject({
+        _id: lesson._id.toString(),
+        title: lesson.title,
+        author: currentUser.id
+      })
+    })
+
+    it('should return 404 for missing lesson', async () => {
+      const missingId = new mongoose.Types.ObjectId()
+
+      const response = await app
+        .get(`${endpointUrl}/${missingId}`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body.code).toBe('DOCUMENT_NOT_FOUND')
+    })
+
+    it('should return 400 for invalid id', async () => {
+      const response = await app
+        .get(`${endpointUrl}/invalid-id`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(400)
+      expect(response.body.code).toBe('INVALID_ID')
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.get(`${endpointUrl}/${new mongoose.Types.ObjectId()}`)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN for student role', async () => {
+      const lesson = await Lesson.create({
+        ...lessonData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .get(`${endpointUrl}/${lesson._id}`)
+        .set('Cookie', [`accessToken=${studentAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
+
   describe(`POST ${endpointUrl}`, () => {
     it('should create a lesson', async () => {
       const response = await app

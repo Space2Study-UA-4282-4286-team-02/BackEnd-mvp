@@ -69,6 +69,34 @@ describe('Lesson service', () => {
     expect(result).toEqual({ items, count: 2 })
   })
 
+  it('returns lesson by id', async () => {
+    const lesson = { _id: 'lesson-id', title: 'Lesson title' }
+    const exec = jest.fn().mockResolvedValue(lesson)
+    const lean = jest.fn().mockReturnValue({ exec })
+    const populate = jest.fn().mockReturnValue({ lean })
+
+    Lesson.findById.mockReturnValue({ populate })
+
+    const result = await lessonService.getLessonById('lesson-id')
+
+    expect(Lesson.findById).toHaveBeenCalledWith('lesson-id')
+    expect(populate).toHaveBeenCalledWith({ path: 'category', select: '_id name' })
+    expect(result).toEqual(lesson)
+  })
+
+  it('throws not found when lesson does not exist', async () => {
+    const exec = jest.fn().mockResolvedValue(null)
+    const lean = jest.fn().mockReturnValue({ exec })
+    const populate = jest.fn().mockReturnValue({ lean })
+
+    Lesson.findById.mockReturnValue({ populate })
+
+    await expect(lessonService.getLessonById('missing-id')).rejects.toMatchObject({
+      status: 404,
+      code: 'DOCUMENT_NOT_FOUND'
+    })
+  })
+
   it('updates lesson for owner', async () => {
     const lesson = {
       author: { toString: () => 'author-id' },
