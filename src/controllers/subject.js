@@ -43,7 +43,14 @@ const getSubjectById = async (req, res) => {
   res.status(200).json(subject)
 }
 
+const createSubject = async (req, res) => {
+  const subject = await subjectService.createSubject(req.body)
+
+  res.status(201).json(subject)
+}
+
 module.exports = {
   getSubjects,
-  getSubjectById
+  getSubjectById,
+  createSubject
 }
