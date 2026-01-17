@@ -54,6 +54,19 @@ const offerService = {
 
     const offer = await Offer.findById(id)
 
+    if (!offer) {
+      const err = new Error('Offer not found')
+      err.status = 404
+      throw err
+    }
+
+    const offerAuthorId = offer.author && offer.author.toString ? offer.author.toString() : String(offer.author)
+    if (offerAuthorId !== String(currentUserId)) {
+      const err = new Error('Forbidden')
+      err.status = 403
+      throw err
+    }
+
     for (let field in filteredUpdateData) {
       offer[field] = filteredUpdateData[field]
     }
@@ -62,7 +75,22 @@ const offerService = {
     await offer.save()
   },
 
-  deleteOffer: async (id) => {
+  deleteOffer: async (id, currentUserId) => {
+    const offer = await Offer.findById(id)
+
+    if (!offer) {
+      const err = new Error('Offer not found')
+      err.status = 404
+      throw err
+    }
+
+    const offerAuthorId = offer.author && offer.author.toString ? offer.author.toString() : String(offer.author)
+    if (offerAuthorId !== String(currentUserId)) {
+      const err = new Error('Forbidden')
+      err.status = 403
+      throw err
+    }
+
     await Offer.findByIdAndRemove(id).exec()
   }
 }
