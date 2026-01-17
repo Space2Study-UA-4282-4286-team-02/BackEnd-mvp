@@ -15,6 +15,7 @@ const body = [{ model: ResourcesCategory, idName: 'category' }]
 router.use(authMiddleware)
 router.use(restrictTo(TUTOR, ADMIN, SUPERADMIN))
 
+router.get('/', asyncWrapper(lessonController.getLessons))
 router.post('/', isEntityValid({ body }), asyncWrapper(lessonController.createLesson))
 
 module.exports = router

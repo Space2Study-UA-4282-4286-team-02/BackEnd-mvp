@@ -78,6 +78,69 @@ paths:
           description: Deleted
 
   /lessons:
+    get:
+      tags:
+        - Lessons
+      summary: Get lessons
+      description: Get lessons for the current user. Accessible to authenticated tutors/admins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: title
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: categories
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            example: '{"order":"asc","orderBy":"updatedAt"}'
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of lessons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonList'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Lessons
@@ -698,3 +761,14 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    LessonList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'

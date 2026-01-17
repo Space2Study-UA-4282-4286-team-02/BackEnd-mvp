@@ -45,6 +45,59 @@ describe('Lesson controller', () => {
     await stopServer(server)
   })
 
+  describe(`GET ${endpointUrl}`, () => {
+    it('should return lessons for current user', async () => {
+      await Lesson.create([
+        {
+          ...lessonData,
+          author: currentUser.id,
+          category: category._id
+        },
+        {
+          ...lessonData,
+          title: 'Second lesson',
+          author: currentUser.id,
+          category: category._id
+        }
+      ])
+
+      const response = await app
+        .get(endpointUrl)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body.count).toBe(2)
+      expect(response.body.items).toHaveLength(2)
+      expect(response.body.items[0]).toMatchObject({
+        title: expect.any(String),
+        author: currentUser.id
+      })
+    })
+
+    it('should return 400 for invalid query params', async () => {
+      const response = await app
+        .get(`${endpointUrl}?limit=0`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(400)
+      expect(response.body.code).toBe('BAD_REQUEST')
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const response = await app.get(endpointUrl)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN for student role', async () => {
+      const response = await app
+        .get(endpointUrl)
+        .set('Cookie', [`accessToken=${studentAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
+
   describe(`POST ${endpointUrl}`, () => {
     it('should create a lesson', async () => {
       const response = await app
