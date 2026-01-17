@@ -30,6 +30,16 @@ const subjectService = {
     const count = await Subject.countDocuments(match).exec()
 
     return { items, count }
+  },
+
+  getSubjectById: async (id) => {
+    const subject = await Subject.findById(id).lean().exec()
+
+    if (!subject) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Subject.modelName]))
+    }
+
+    return subject
   }
 }
 
