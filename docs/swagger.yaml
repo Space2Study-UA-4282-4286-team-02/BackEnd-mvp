@@ -186,6 +186,64 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /lessons/{id}:
+    patch:
+      tags:
+        - Lessons
+      summary: Update lesson
+      description: Update an existing lesson. Accessible to authenticated tutors/admins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonUpdateRequest'
+      responses:
+        '200':
+          description: Lesson updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lesson'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /categories:
     get:
       summary: Get categories
@@ -713,6 +771,27 @@ components:
           type: string
           nullable: true
           example: "64b1c4f4e3a2b1c0d1e2f3a"
+
+    LessonUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        content:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+          nullable: true
 
     Lesson:
       type: object

@@ -1,5 +1,8 @@
 const lessonService = require('~/services/lesson')
 const Lesson = require('~/models/lesson')
+const {
+  roles: { ADMIN }
+} = require('~/consts/auth')
 
 jest.mock('~/models/lesson', () => ({
   create: jest.fn(),
@@ -62,5 +65,64 @@ describe('Lesson service', () => {
     expect(skip).toHaveBeenCalledWith(0)
     expect(limit).toHaveBeenCalledWith(10)
     expect(result).toEqual({ items, count: 2 })
+  })
+
+  it('updates lesson for owner', async () => {
+    const lesson = {
+      author: { toString: () => 'author-id' },
+      validate: jest.fn().mockResolvedValue(),
+      save: jest.fn().mockResolvedValue(),
+      populate: jest.fn().mockResolvedValue({ _id: 'lesson-id', title: 'Updated title' })
+    }
+
+    Lesson.findById.mockResolvedValue(lesson)
+
+    const result = await lessonService.updateLesson('lesson-id', 'author-id', 'tutor', {
+      title: 'Updated title',
+      unknown: 'ignored'
+    })
+
+    expect(lesson.title).toBe('Updated title')
+    expect(lesson.unknown).toBeUndefined()
+    expect(lesson.validate).toHaveBeenCalled()
+    expect(lesson.save).toHaveBeenCalled()
+    expect(result).toEqual({ _id: 'lesson-id', title: 'Updated title' })
+  })
+
+  it('allows admin to update lesson', async () => {
+    const lesson = {
+      author: { toString: () => 'author-id' },
+      validate: jest.fn().mockResolvedValue(),
+      save: jest.fn().mockResolvedValue(),
+      populate: jest.fn().mockResolvedValue({ _id: 'lesson-id', title: 'Admin update' })
+    }
+
+    Lesson.findById.mockResolvedValue(lesson)
+
+    const result = await lessonService.updateLesson('lesson-id', 'admin-id', ADMIN, {
+      title: 'Admin update'
+    })
+
+    expect(result.title).toBe('Admin update')
+  })
+
+  it('throws forbidden when non-owner tries to update', async () => {
+    const lesson = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Lesson.findById.mockResolvedValue(lesson)
+
+    await expect(
+      lessonService.updateLesson('lesson-id', 'other-user', 'tutor', { title: 'Hack' })
+    ).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' })
+  })
+
+  it('throws not found for missing lesson', async () => {
+    Lesson.findById.mockResolvedValue(null)
+
+    await expect(
+      lessonService.updateLesson('missing-id', 'author-id', 'tutor', { title: 'Update' })
+    ).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
   })
 })
