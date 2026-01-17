@@ -21,5 +21,6 @@ router.param('id', idValidation)
 router.get('/', asyncWrapper(lessonController.getLessons))
 router.post('/', isEntityValid({ body }), asyncWrapper(lessonController.createLesson))
 router.patch('/:id', isEntityValid({ body }), asyncWrapper(lessonController.updateLesson))
+router.delete('/:id', asyncWrapper(lessonController.deleteLesson))
 
 module.exports = router

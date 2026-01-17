@@ -72,8 +72,18 @@ const updateLesson = async (req, res) => {
   res.status(200).json(updatedLesson)
 }
 
+const deleteLesson = async (req, res) => {
+  const { id } = req.params
+  const { id: currentUserId, role: currentUserRole } = req.user
+
+  await lessonService.deleteLesson(id, currentUserId, currentUserRole)
+
+  res.status(204).end()
+}
+
 module.exports = {
   getLessons,
   updateLesson,
+  deleteLesson,
   createLesson
 }

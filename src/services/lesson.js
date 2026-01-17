@@ -46,6 +46,21 @@ const lessonService = {
     return lesson.populate({ path: 'category', select: '_id name' })
   },
 
+  deleteLesson: async (id, currentUserId, currentUserRole) => {
+    const lesson = await Lesson.findById(id)
+
+    if (!lesson) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Lesson.modelName]))
+    }
+
+    const isPrivileged = currentUserRole === ADMIN || currentUserRole === SUPERADMIN
+    if (!isPrivileged && lesson.author.toString() !== currentUserId) {
+      throw createForbiddenError()
+    }
+
+    await Lesson.findByIdAndRemove(id).exec()
+  },
+
   createLesson: async (author, data) => {
     const { title, description, content, attachments, category } = data
 

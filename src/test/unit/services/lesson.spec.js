@@ -7,7 +7,9 @@ const {
 jest.mock('~/models/lesson', () => ({
   create: jest.fn(),
   find: jest.fn(),
-  countDocuments: jest.fn()
+  countDocuments: jest.fn(),
+  findById: jest.fn(),
+  findByIdAndRemove: jest.fn()
 }))
 
 describe('Lesson service', () => {
@@ -124,5 +126,40 @@ describe('Lesson service', () => {
     await expect(
       lessonService.updateLesson('missing-id', 'author-id', 'tutor', { title: 'Update' })
     ).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
+  })
+
+  it('deletes lesson for owner', async () => {
+    const lesson = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Lesson.findById.mockResolvedValue(lesson)
+    Lesson.findByIdAndRemove.mockReturnValue({ exec: jest.fn().mockResolvedValue() })
+
+    await lessonService.deleteLesson('lesson-id', 'author-id', 'tutor')
+
+    expect(Lesson.findByIdAndRemove).toHaveBeenCalledWith('lesson-id')
+  })
+
+  it('throws forbidden when non-owner tries to delete', async () => {
+    const lesson = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Lesson.findById.mockResolvedValue(lesson)
+
+    await expect(lessonService.deleteLesson('lesson-id', 'other-user', 'tutor')).rejects.toMatchObject({
+      status: 403,
+      code: 'FORBIDDEN'
+    })
+  })
+
+  it('throws not found when deleting missing lesson', async () => {
+    Lesson.findById.mockResolvedValue(null)
+
+    await expect(lessonService.deleteLesson('missing-id', 'author-id', 'tutor')).rejects.toMatchObject({
+      status: 404,
+      code: 'DOCUMENT_NOT_FOUND'
+    })
   })
 })
