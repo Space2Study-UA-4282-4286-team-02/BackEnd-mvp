@@ -6,6 +6,9 @@ require('~/initialization/envSetup')
 const serverSetup = require('~/initialization/serverSetup')
 
 const serverInit = async () => {
+  if (!mongoose.__driver) {
+    mongoose.setDriver(require('mongoose/lib/drivers/node-mongodb-native'))
+  }
   const app = express()
   const server = await serverSetup(app)
   return { app: request(app), server }

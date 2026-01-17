@@ -1,4 +1,5 @@
 const User = require('~/models/user')
+const passwordService = require('~/services/password.service')
 
 const testUserAuthentication = async (app, testUser = {}) => {
   const qtyOfMandatorySignupFields = 5
@@ -15,9 +16,12 @@ const testUserAuthentication = async (app, testUser = {}) => {
     }
   }
 
-  await User.create({ ...testUser })
+  const plainPassword = testUser.password
+  const hashedPassword = await passwordService.hashPassword(plainPassword)
 
-  const loginUserResponse = await app.post('/auth/login').send({ email: testUser.email, password: testUser.password })
+  await User.create({ ...testUser, password: hashedPassword })
+
+  const loginUserResponse = await app.post('/auth/login').send({ email: testUser.email, password: plainPassword })
 
   return loginUserResponse.body.accessToken
 }
