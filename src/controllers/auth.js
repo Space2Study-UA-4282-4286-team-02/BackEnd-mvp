@@ -159,7 +159,7 @@ const confirmEmail = async (req, res) => {
 const googleAuth = async (req, res) => {
   const { token } = req.body
 
-  const tokens = await authService.googleAuth(token)
+  const tokens = await authService.googleAuth(token.credential)
 
   res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
   res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
