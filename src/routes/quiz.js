@@ -1,7 +1,10 @@
 const router = require('express').Router()
 
+const Quiz = require('~/models/quiz')
 const quizController = require('~/controllers/quiz')
 const asyncWrapper = require('~/middlewares/asyncWrapper')
+const isEntityValid = require('~/middlewares/entityValidation')
+const idValidation = require('~/middlewares/idValidation')
 const { authMiddleware, restrictTo } = require('~/middlewares/auth')
 
 const {
@@ -11,6 +14,10 @@ const {
 router.use(authMiddleware)
 router.use(restrictTo(TUTOR, ADMIN, SUPERADMIN))
 
+router.param('id', idValidation)
+const params = [{ model: Quiz, idName: 'id' }]
+
 router.get('/', asyncWrapper(quizController.getQuizzes))
+router.get('/:id', isEntityValid({ params }), asyncWrapper(quizController.getQuizById))
 
 module.exports = router
