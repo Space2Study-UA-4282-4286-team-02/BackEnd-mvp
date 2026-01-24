@@ -1069,8 +1069,7 @@ components:
         items:
           type: array
           items:
-            type: string
-          example: []
+            $ref: '#/components/schemas/Question'
         category:
           type: object
           nullable: true
@@ -1100,6 +1099,57 @@ components:
         resourceType:
           type: string
           example: "quizzes"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      required:
+        - _id
+        - title
+        - text
+        - type
+        - author
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3e"
+        title:
+          type: string
+          example: "Linear equations basics"
+        text:
+          type: string
+          example: "Solve: 2x + 3 = 11"
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              isCorrect:
+                type: boolean
+        type:
+          type: string
+          example: "oneAnswer"
+        category:
+          type: object
+          nullable: true
+          properties:
+            _id:
+              type: string
+            name:
+              type: string
+        author:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3c"
+        resourceType:
+          type: string
+          example: "questions"
         createdAt:
           type: string
           format: date-time
