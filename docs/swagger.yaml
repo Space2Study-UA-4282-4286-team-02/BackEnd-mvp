@@ -179,7 +179,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '409':
+        '422':
           description: Validation error
           content:
             application/json:
@@ -281,7 +281,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '409':
+        '422':
           description: Validation error
           content:
             application/json:
