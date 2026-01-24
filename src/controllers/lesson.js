@@ -55,8 +55,9 @@ const getLessons = async (req, res) => {
 
 const getLessonById = async (req, res) => {
   const { id } = req.params
+  const { id: currentUserId, role: currentUserRole } = req.user
 
-  const lesson = await lessonService.getLessonById(id)
+  const lesson = await lessonService.getLessonById(id, currentUserId, currentUserRole)
 
   res.status(200).json(lesson)
 }

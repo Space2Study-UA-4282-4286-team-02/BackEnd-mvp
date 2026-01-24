@@ -130,6 +130,22 @@ describe('Lesson controller', () => {
       expect(response.body.code).toBe('DOCUMENT_NOT_FOUND')
     })
 
+    it('should return 403 for non-owner tutor', async () => {
+      const otherAccessToken = await testUserAuthentication(app, { role: TUTOR })
+      const otherUser = TokenService.validateAccessToken(otherAccessToken)
+      const lesson = await Lesson.create({
+        ...lessonData,
+        author: otherUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .get(`${endpointUrl}/${lesson._id}`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+
     it('should return 400 for invalid id', async () => {
       const response = await app
         .get(`${endpointUrl}/invalid-id`)

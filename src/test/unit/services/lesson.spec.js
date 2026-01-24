@@ -9,7 +9,7 @@ jest.mock('~/models/lesson', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
   findById: jest.fn(),
-  findByIdAndRemove: jest.fn()
+  findByIdAndDelete: jest.fn()
 }))
 
 describe('Lesson service', () => {
@@ -50,7 +50,8 @@ describe('Lesson service', () => {
       { _id: 'lesson-2', title: 'Lesson 2' }
     ]
     const exec = jest.fn().mockResolvedValue(items)
-    const limit = jest.fn().mockReturnValue({ exec })
+    const lean = jest.fn().mockReturnValue({ exec })
+    const limit = jest.fn().mockReturnValue({ lean })
     const skip = jest.fn().mockReturnValue({ limit })
     const sort = jest.fn().mockReturnValue({ skip })
     const populate = jest.fn().mockReturnValue({ sort })
@@ -70,14 +71,14 @@ describe('Lesson service', () => {
   })
 
   it('returns lesson by id', async () => {
-    const lesson = { _id: 'lesson-id', title: 'Lesson title' }
+    const lesson = { _id: 'lesson-id', title: 'Lesson title', author: 'author-id' }
     const exec = jest.fn().mockResolvedValue(lesson)
     const lean = jest.fn().mockReturnValue({ exec })
     const populate = jest.fn().mockReturnValue({ lean })
 
     Lesson.findById.mockReturnValue({ populate })
 
-    const result = await lessonService.getLessonById('lesson-id')
+    const result = await lessonService.getLessonById('lesson-id', 'author-id', 'tutor')
 
     expect(Lesson.findById).toHaveBeenCalledWith('lesson-id')
     expect(populate).toHaveBeenCalledWith({ path: 'category', select: '_id name' })
@@ -91,10 +92,23 @@ describe('Lesson service', () => {
 
     Lesson.findById.mockReturnValue({ populate })
 
-    await expect(lessonService.getLessonById('missing-id')).rejects.toMatchObject({
+    await expect(lessonService.getLessonById('missing-id', 'author-id', 'tutor')).rejects.toMatchObject({
       status: 404,
       code: 'DOCUMENT_NOT_FOUND'
     })
+  })
+
+  it('throws forbidden when non-owner tries to read', async () => {
+    const lesson = { _id: 'lesson-id', author: 'author-id' }
+    const exec = jest.fn().mockResolvedValue(lesson)
+    const lean = jest.fn().mockReturnValue({ exec })
+    const populate = jest.fn().mockReturnValue({ lean })
+
+    Lesson.findById.mockReturnValue({ populate })
+
+    await expect(
+      lessonService.getLessonById('lesson-id', 'other-user', 'tutor')
+    ).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' })
   })
 
   it('updates lesson for owner', async () => {
@@ -162,11 +176,11 @@ describe('Lesson service', () => {
     }
 
     Lesson.findById.mockResolvedValue(lesson)
-    Lesson.findByIdAndRemove.mockReturnValue({ exec: jest.fn().mockResolvedValue() })
+    Lesson.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue() })
 
     await lessonService.deleteLesson('lesson-id', 'author-id', 'tutor')
 
-    expect(Lesson.findByIdAndRemove).toHaveBeenCalledWith('lesson-id')
+    expect(Lesson.findByIdAndDelete).toHaveBeenCalledWith('lesson-id')
   })
 
   it('throws forbidden when non-owner tries to delete', async () => {

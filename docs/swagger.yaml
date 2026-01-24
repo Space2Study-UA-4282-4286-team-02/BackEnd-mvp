@@ -82,7 +82,7 @@ paths:
       tags:
         - Lessons
       summary: Get lessons
-      description: Get lessons for the current user. Accessible to authenticated tutors/admins.
+      description: Get lessons for the current user. Accessible to authenticated tutors/admins/superadmins.
       security:
         - cookieAuth: []
       parameters:
@@ -145,7 +145,7 @@ paths:
       tags:
         - Lessons
       summary: Create lesson
-      description: Create a new lesson. Accessible to authenticated users with role Tutor or Admin.
+      description: Create a new lesson. Accessible to authenticated users with role Tutor, Admin, or SuperAdmin.
       security:
         - cookieAuth: []
       requestBody:
@@ -191,7 +191,7 @@ paths:
       tags:
         - Lessons
       summary: Get lesson by id
-      description: Get a lesson by id. Accessible to authenticated tutors/admins.
+      description: Get a lesson by id. Accessible to authenticated tutors/admins/superadmins.
       security:
         - cookieAuth: []
       parameters:
@@ -235,7 +235,7 @@ paths:
       tags:
         - Lessons
       summary: Update lesson
-      description: Update an existing lesson. Accessible to authenticated tutors/admins.
+      description: Update an existing lesson. Accessible to authenticated tutors/admins/superadmins.
       security:
         - cookieAuth: []
       parameters:
@@ -291,7 +291,7 @@ paths:
       tags:
         - Lessons
       summary: Delete lesson
-      description: Delete a lesson by id. Accessible to authenticated tutors/admins.
+      description: Delete a lesson by id. Accessible to authenticated tutors/admins/superadmins.
       security:
         - cookieAuth: []
       parameters:

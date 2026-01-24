@@ -22,7 +22,7 @@ const lessonService = {
     return { items, count }
   },
 
-  getLessonById: async (id) => {
+  getLessonById: async (id, currentUserId, currentUserRole) => {
     const lesson = await Lesson.findById(id)
       .populate({ path: 'category', select: '_id name' })
       .lean()
@@ -30,6 +30,11 @@ const lessonService = {
 
     if (!lesson) {
       throw createError(404, DOCUMENT_NOT_FOUND([Lesson.modelName]))
+    }
+
+    const isPrivileged = currentUserRole === ADMIN || currentUserRole === SUPERADMIN
+    if (!isPrivileged && lesson.author.toString() !== currentUserId) {
+      throw createForbiddenError()
     }
 
     return lesson
@@ -71,7 +76,7 @@ const lessonService = {
       throw createForbiddenError()
     }
 
-    await Lesson.findByIdAndRemove(id).exec()
+    await Lesson.findByIdAndDelete(id).exec()
   },
 
   createLesson: async (author, data) => {
