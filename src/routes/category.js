@@ -5,6 +5,7 @@ const { authMiddleware, restrictTo } = require('~/middlewares/auth')
 const isEntityValid = require('~/middlewares/entityValidation')
 const idValidation = require('~/middlewares/idValidation')
 const categoryController = require('~/controllers/category')
+const subjectController = require('~/controllers/subject')
 const categoryValidation = require('~/validation/schemas/category')
 const {
   roles: { ADMIN, STUDENT, TUTOR }
@@ -25,6 +26,8 @@ router.use(restrictTo(STUDENT, TUTOR))
 
 router.get('/', asyncWrapper(categoryController.getCategories))
 router.get('/names', asyncWrapper(categoryController.getCategoriesNames))
+router.get('/subjects', asyncWrapper(subjectController.getSubjects))
+router.get('/:id/subjects', asyncWrapper(subjectController.getSubjects))
 router.get('/:id?/subjects/names', asyncWrapper(categoryController.getSubjectNamesByCategoryId))
 router.get('/:id', asyncWrapper(categoryController.getCategoryById))
 
