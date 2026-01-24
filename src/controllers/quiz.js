@@ -9,9 +9,9 @@ const parseQueryNumber = (value, minValue = 0) => {
     return undefined
   }
 
-  const parsed = parseInt(value, 10)
+  const parsed = Number(value)
 
-  if (Number.isNaN(parsed) || parsed < minValue) {
+  if (!Number.isInteger(parsed) || parsed < minValue) {
     throw createBadRequestError()
   }
 
