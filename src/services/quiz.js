@@ -1,4 +1,6 @@
 const Quiz = require('~/models/quiz')
+const filterAllowedFields = require('~/utils/filterAllowedFields')
+const { allowedQuizFieldsForUpdate } = require('~/validation/services/quiz')
 const { createError, createForbiddenError } = require('~/utils/errorsHelper')
 const { DOCUMENT_NOT_FOUND } = require('~/consts/errors')
 const {
@@ -37,6 +39,30 @@ const quizService = {
     }
 
     return quiz
+  },
+
+  updateQuiz: async (id, currentUserId, currentUserRole, updateData) => {
+    const filteredUpdateData = filterAllowedFields(updateData, allowedQuizFieldsForUpdate)
+
+    const quiz = await Quiz.findById(id)
+
+    if (!quiz) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Quiz.modelName]))
+    }
+
+    const isPrivileged = currentUserRole === ADMIN || currentUserRole === SUPERADMIN
+    if (!isPrivileged && quiz.author.toString() !== currentUserId) {
+      throw createForbiddenError()
+    }
+
+    for (let field in filteredUpdateData) {
+      quiz[field] = filteredUpdateData[field]
+    }
+
+    await quiz.validate()
+    await quiz.save()
+
+    return quiz.populate([{ path: 'category', select: '_id name' }, { path: 'items' }])
   }
 }
 

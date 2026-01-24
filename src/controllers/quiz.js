@@ -62,7 +62,18 @@ const getQuizById = async (req, res) => {
   res.status(200).json(quiz)
 }
 
+const updateQuiz = async (req, res) => {
+  const { id } = req.params
+  const { id: currentUserId, role: currentUserRole } = req.user
+  const updateData = req.body
+
+  const updatedQuiz = await quizService.updateQuiz(id, currentUserId, currentUserRole, updateData)
+
+  res.status(200).json(updatedQuiz)
+}
+
 module.exports = {
   getQuizzes,
-  getQuizById
+  getQuizById,
+  updateQuiz
 }

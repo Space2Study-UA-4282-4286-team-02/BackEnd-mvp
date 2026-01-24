@@ -1,5 +1,8 @@
 const quizService = require('~/services/quiz')
 const Quiz = require('~/models/quiz')
+const {
+  roles: { ADMIN }
+} = require('~/consts/auth')
 
 jest.mock('~/models/quiz', () => ({
   find: jest.fn(),
@@ -80,5 +83,64 @@ describe('Quiz service', () => {
     await expect(
       quizService.getQuizById('quiz-id', 'other-user', 'tutor')
     ).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' })
+  })
+
+  it('updates quiz for owner', async () => {
+    const quiz = {
+      author: { toString: () => 'author-id' },
+      validate: jest.fn().mockResolvedValue(),
+      save: jest.fn().mockResolvedValue(),
+      populate: jest.fn().mockResolvedValue({ _id: 'quiz-id', title: 'Updated title' })
+    }
+
+    Quiz.findById.mockResolvedValue(quiz)
+
+    const result = await quizService.updateQuiz('quiz-id', 'author-id', 'tutor', {
+      title: 'Updated title',
+      unknown: 'ignored'
+    })
+
+    expect(quiz.title).toBe('Updated title')
+    expect(quiz.unknown).toBeUndefined()
+    expect(quiz.validate).toHaveBeenCalled()
+    expect(quiz.save).toHaveBeenCalled()
+    expect(result).toEqual({ _id: 'quiz-id', title: 'Updated title' })
+  })
+
+  it('allows admin to update quiz', async () => {
+    const quiz = {
+      author: { toString: () => 'author-id' },
+      validate: jest.fn().mockResolvedValue(),
+      save: jest.fn().mockResolvedValue(),
+      populate: jest.fn().mockResolvedValue({ _id: 'quiz-id', title: 'Admin update' })
+    }
+
+    Quiz.findById.mockResolvedValue(quiz)
+
+    const result = await quizService.updateQuiz('quiz-id', 'admin-id', ADMIN, {
+      title: 'Admin update'
+    })
+
+    expect(result.title).toBe('Admin update')
+  })
+
+  it('throws forbidden when non-owner tries to update', async () => {
+    const quiz = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Quiz.findById.mockResolvedValue(quiz)
+
+    await expect(
+      quizService.updateQuiz('quiz-id', 'other-user', 'tutor', { title: 'Hack' })
+    ).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' })
+  })
+
+  it('throws not found for missing quiz', async () => {
+    Quiz.findById.mockResolvedValue(null)
+
+    await expect(
+      quizService.updateQuiz('missing-id', 'author-id', 'tutor', { title: 'Update' })
+    ).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
   })
 })

@@ -189,4 +189,97 @@ describe('Quiz controller', () => {
       expectError(403, FORBIDDEN, response)
     })
   })
+
+  describe(`PATCH ${endpointUrl}/:id`, () => {
+    it('should update quiz for author', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .patch(`${endpointUrl}/${quiz._id}`)
+        .send({ title: 'Updated title' })
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(200)
+      expect(response.body.title).toBe('Updated title')
+    })
+
+    it('should return 404 for missing quiz', async () => {
+      const missingId = new mongoose.Types.ObjectId()
+
+      const response = await app
+        .patch(`${endpointUrl}/${missingId}`)
+        .send({ title: 'Updated title' })
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body.code).toBe('DOCUMENT_NOT_FOUND')
+    })
+
+    it('should return validation error for invalid update data', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .patch(`${endpointUrl}/${quiz._id}`)
+        .send({ title: '' })
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(409)
+      expect(response.body.code).toBe('VALIDATION_ERROR')
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app.patch(`${endpointUrl}/${quiz._id}`).send({ title: 'Updated title' })
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN for student role', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .patch(`${endpointUrl}/${quiz._id}`)
+        .send({ title: 'Updated title' })
+        .set('Cookie', [`accessToken=${studentAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+
+    it('should throw FORBIDDEN for non-owner tutor', async () => {
+      const otherTutorToken = await testUserAuthentication(app, {
+        role: TUTOR,
+        email: 'other-tutor@example.com'
+      })
+
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .patch(`${endpointUrl}/${quiz._id}`)
+        .send({ title: 'Updated title' })
+        .set('Cookie', [`accessToken=${otherTutorToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
 })
