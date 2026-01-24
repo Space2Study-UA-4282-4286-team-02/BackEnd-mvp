@@ -7,7 +7,8 @@ const {
 jest.mock('~/models/quiz', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
-  findById: jest.fn()
+  findById: jest.fn(),
+  modelName: 'Quiz'
 }))
 
 describe('Quiz service', () => {
