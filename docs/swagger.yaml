@@ -161,6 +161,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Lesson'
+
+  /quizzes:
+    get:
+      tags:
+        - Quizzes
+      summary: Get quizzes
+      description: Get quizzes for the current user. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: title
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: categories
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            example: '{"order":"asc","orderBy":"updatedAt"}'
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of quizzes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizList'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (authenticated but not allowed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized (no/invalid auth cookie)
           content:
@@ -935,3 +1000,74 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Lesson'
+
+    Quiz:
+      type: object
+      required:
+        - _id
+        - title
+        - description
+        - author
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3d"
+        title:
+          type: string
+          example: "Intro to Algebra Quiz"
+        description:
+          type: string
+          example: "Check your understanding of algebraic expressions."
+        items:
+          type: array
+          items:
+            type: string
+          example: []
+        category:
+          type: object
+          nullable: true
+          properties:
+            _id:
+              type: string
+            name:
+              type: string
+        author:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3c"
+        quizView:
+          type: string
+          example: "Scroll"
+        shuffleQuestions:
+          type: boolean
+          example: false
+        pointValues:
+          type: boolean
+          example: false
+        scoredUnscoredResponses:
+          type: boolean
+          example: false
+        correctAnswers:
+          type: boolean
+          example: false
+        resourceType:
+          type: string
+          example: "quizzes"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    QuizList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Quiz'
