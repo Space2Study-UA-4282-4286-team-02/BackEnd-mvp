@@ -41,11 +41,7 @@ const offerAggregateOptions = (query = {}, params = {}) => {
     const lastNameRegex = second ? getRegex(second) : getRegex('')
 
     if (context === 'subject') {
-      if (authorId) {
-        match.$or = [{ title: wholeRegex }, { 'subject.name': wholeRegex }]
-      } else {
-        match.$or = [{ title: wholeRegex }, { 'subject.name': wholeRegex }]
-      }
+      match.$or = [{ title: wholeRegex }, { 'subject.name': wholeRegex }]
     } else {
       const singleNameFieldMatches = [
         { 'author.firstName': wholeRegex },
@@ -55,8 +51,8 @@ const offerAggregateOptions = (query = {}, params = {}) => {
       const additionalFields = authorId
         ? [{ 'subject.name': wholeRegex }]
         : [
-            { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex || getRegex('') },
-            { 'author.firstName': lastNameRegex || getRegex(''), 'author.lastName': firstNameRegex },
+            { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex },
+            { 'author.firstName': lastNameRegex, 'author.lastName': firstNameRegex },
             ...singleNameFieldMatches
           ]
 
@@ -121,7 +117,9 @@ const offerAggregateOptions = (query = {}, params = {}) => {
   if (excludedOfferId) {
     try {
       match._id = { $ne: mongoose.Types.ObjectId(excludedOfferId) }
-    } catch (e) {}
+    } catch (e) {
+      console.warn(`Failed to parse excludedOfferId: ${excludedOfferId}`, e);
+    }
   }
 
   let sortOption = {}
