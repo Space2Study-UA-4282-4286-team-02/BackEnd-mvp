@@ -26,5 +26,6 @@ const body = [
 router.get('/', asyncWrapper(quizController.getQuizzes))
 router.get('/:id', isEntityValid({ params }), asyncWrapper(quizController.getQuizById))
 router.patch('/:id', isEntityValid({ body }), asyncWrapper(quizController.updateQuiz))
+router.delete('/:id', isEntityValid({ params }), asyncWrapper(quizController.deleteQuiz))
 
 module.exports = router

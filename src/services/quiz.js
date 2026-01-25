@@ -63,6 +63,21 @@ const quizService = {
     await quiz.save()
 
     return quiz.populate([{ path: 'category', select: '_id name' }, { path: 'items' }])
+  },
+
+  deleteQuiz: async (id, currentUserId, currentUserRole) => {
+    const quiz = await Quiz.findById(id)
+
+    if (!quiz) {
+      throw createError(404, DOCUMENT_NOT_FOUND([Quiz.modelName]))
+    }
+
+    const isPrivileged = currentUserRole === ADMIN || currentUserRole === SUPERADMIN
+    if (!isPrivileged && quiz.author.toString() !== currentUserId) {
+      throw createForbiddenError()
+    }
+
+    await Quiz.findByIdAndDelete(id).exec()
   }
 }
 

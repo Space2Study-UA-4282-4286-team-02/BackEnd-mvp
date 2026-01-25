@@ -282,4 +282,79 @@ describe('Quiz controller', () => {
       expectError(403, FORBIDDEN, response)
     })
   })
+
+  describe(`DELETE ${endpointUrl}/:id`, () => {
+    it('should delete quiz for author', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .delete(`${endpointUrl}/${quiz._id}`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(204)
+
+      const stored = await Quiz.findById(quiz._id).lean()
+      expect(stored).toBeNull()
+    })
+
+    it('should return 404 for missing quiz', async () => {
+      const missingId = new mongoose.Types.ObjectId()
+
+      const response = await app
+        .delete(`${endpointUrl}/${missingId}`)
+        .set('Cookie', [`accessToken=${accessToken}`])
+
+      expect(response.statusCode).toBe(404)
+      expect(response.body.code).toBe('DOCUMENT_NOT_FOUND')
+    })
+
+    it('should throw UNAUTHORIZED', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app.delete(`${endpointUrl}/${quiz._id}`)
+
+      expectError(401, UNAUTHORIZED, response)
+    })
+
+    it('should throw FORBIDDEN for student role', async () => {
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .delete(`${endpointUrl}/${quiz._id}`)
+        .set('Cookie', [`accessToken=${studentAccessToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+
+    it('should throw FORBIDDEN for non-owner tutor', async () => {
+      const otherTutorToken = await testUserAuthentication(app, {
+        role: TUTOR,
+        email: 'other-tutor@example.com'
+      })
+
+      const quiz = await Quiz.create({
+        ...quizData,
+        author: currentUser.id,
+        category: category._id
+      })
+
+      const response = await app
+        .delete(`${endpointUrl}/${quiz._id}`)
+        .set('Cookie', [`accessToken=${otherTutorToken}`])
+
+      expectError(403, FORBIDDEN, response)
+    })
+  })
 })

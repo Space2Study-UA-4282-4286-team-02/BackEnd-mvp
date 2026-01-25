@@ -72,8 +72,18 @@ const updateQuiz = async (req, res) => {
   res.status(200).json(updatedQuiz)
 }
 
+const deleteQuiz = async (req, res) => {
+  const { id } = req.params
+  const { id: currentUserId, role: currentUserRole } = req.user
+
+  await quizService.deleteQuiz(id, currentUserId, currentUserRole)
+
+  res.status(204).end()
+}
+
 module.exports = {
   getQuizzes,
   getQuizById,
-  updateQuiz
+  updateQuiz,
+  deleteQuiz
 }

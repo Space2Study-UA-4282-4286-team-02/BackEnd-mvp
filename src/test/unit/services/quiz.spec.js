@@ -8,6 +8,7 @@ jest.mock('~/models/quiz', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
   findById: jest.fn(),
+  findByIdAndDelete: jest.fn(),
   modelName: 'Quiz'
 }))
 
@@ -142,6 +143,39 @@ describe('Quiz service', () => {
 
     await expect(
       quizService.updateQuiz('missing-id', 'author-id', 'tutor', { title: 'Update' })
+    ).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
+  })
+
+  it('deletes quiz for owner', async () => {
+    const quiz = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Quiz.findById.mockResolvedValue(quiz)
+    Quiz.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue() })
+
+    await quizService.deleteQuiz('quiz-id', 'author-id', 'tutor')
+
+    expect(Quiz.findByIdAndDelete).toHaveBeenCalledWith('quiz-id')
+  })
+
+  it('throws forbidden when non-owner tries to delete', async () => {
+    const quiz = {
+      author: { toString: () => 'author-id' }
+    }
+
+    Quiz.findById.mockResolvedValue(quiz)
+
+    await expect(
+      quizService.deleteQuiz('quiz-id', 'other-user', 'tutor')
+    ).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' })
+  })
+
+  it('throws not found when deleting missing quiz', async () => {
+    Quiz.findById.mockResolvedValue(null)
+
+    await expect(
+      quizService.deleteQuiz('missing-id', 'author-id', 'tutor')
     ).rejects.toMatchObject({ status: 404, code: 'DOCUMENT_NOT_FOUND' })
   })
 })
