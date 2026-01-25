@@ -65,21 +65,24 @@ const offerAggregateOptions = (query = {}, params = {}) => {
   }
 
   if (categoryId) {
-    try {
-      match.category = mongoose.Types.ObjectId(categoryId)
-    } catch (e) {}
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      throw new Error(`Invalid categoryId: ${categoryId}`)
+    }
+    match['category._id'] = mongoose.Types.ObjectId(categoryId)
   }
 
   if (subjectId) {
-    try {
-      match.subject = mongoose.Types.ObjectId(subjectId)
-    } catch (e) {}
+    if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+      throw new Error(`Invalid subjectId: ${subjectId}`)
+    }
+    match['subject._id'] = mongoose.Types.ObjectId(subjectId)
   }
 
   if (authorId) {
-    try {
-      match['author._id'] = mongoose.Types.ObjectId(authorId)
-    } catch (e) {}
+    if (!mongoose.Types.ObjectId.isValid(authorId)) {
+      throw new Error(`Invalid authorId: ${authorId}`)
+    }
+    match['author._id'] = mongoose.Types.ObjectId(authorId)
   }
 
   if (authorRole) {
@@ -167,7 +170,6 @@ const offerAggregateOptions = (query = {}, params = {}) => {
       }
     },
     { $unwind: '$author' },
-    { $match: match },
     {
       $lookup: {
         from: 'subjects',
@@ -192,6 +194,7 @@ const offerAggregateOptions = (query = {}, params = {}) => {
         categoryName: { $ifNull: ['$category.name', null] }
       }
     },
+    { $match: match },
     { $sort: sortOption },
     {
       $facet: {

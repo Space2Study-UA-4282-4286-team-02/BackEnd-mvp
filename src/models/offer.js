@@ -70,11 +70,6 @@ const offerSchema = new Schema(
       ref: CATEGORY,
       required: [true, 'category is required']
     },
-    authorFirstName: { type: String, index: false },
-    authorLastName: { type: String, index: false },
-    authorFullName: { type: String, index: true }, 
-    subjectName: { type: String, index: true },
-    categoryName: { type: String, index: true },
 
     status: {
       type: String,
@@ -120,7 +115,6 @@ offerSchema.index({ subject: 1 })
 offerSchema.index({ author: 1 })
 offerSchema.index({ createdAt: -1 })
 offerSchema.index({ price: 1 })
-offerSchema.index({ title: 'text', description: 'text' })
 offerSchema.index({ category: 1, createdAt: -1 })
 
 module.exports = model(OFFER, offerSchema)
