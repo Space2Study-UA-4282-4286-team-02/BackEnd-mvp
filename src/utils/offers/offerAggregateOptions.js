@@ -64,21 +64,21 @@ const offerAggregateOptions = (query = {}, params = {}) => {
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       throw new Error(`Invalid categoryId: ${categoryId}`)
     }
-    match['category._id'] = mongoose.Types.ObjectId(categoryId)
+    match['category._id'] = new mongoose.Types.ObjectId(categoryId)
   }
 
   if (subjectId) {
     if (!mongoose.Types.ObjectId.isValid(subjectId)) {
       throw new Error(`Invalid subjectId: ${subjectId}`)
     }
-    match['subject._id'] = mongoose.Types.ObjectId(subjectId)
+    match['subject._id'] = new mongoose.Types.ObjectId(subjectId)
   }
 
   if (authorId) {
     if (!mongoose.Types.ObjectId.isValid(authorId)) {
       throw new Error(`Invalid authorId: ${authorId}`)
     }
-    match['author._id'] = mongoose.Types.ObjectId(authorId)
+    match['author._id'] = new mongoose.Types.ObjectId(authorId)
   }
 
   if (authorRole) {
@@ -116,7 +116,7 @@ const offerAggregateOptions = (query = {}, params = {}) => {
 
   if (excludedOfferId) {
     try {
-      match._id = { $ne: mongoose.Types.ObjectId(excludedOfferId) }
+      match._id = { $ne: new mongoose.Types.ObjectId(excludedOfferId) }
     } catch (e) {
       console.warn(`Failed to parse excludedOfferId: ${excludedOfferId}`, e);
     }
