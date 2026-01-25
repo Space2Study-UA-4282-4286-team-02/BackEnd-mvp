@@ -47,7 +47,7 @@ const questionService = {
       throw createForbiddenError()
     }
 
-    await Question.findByIdAndRemove(id).exec()
+    await Question.findByIdAndDelete(id).exec()
   },
 
   updateQuestion: async (id, currentUserId, data) => {

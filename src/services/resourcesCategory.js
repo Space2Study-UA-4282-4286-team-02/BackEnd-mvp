@@ -42,7 +42,7 @@ const resourcesCategoryService = {
   },
 
   deleteResourceCategory: async (id) => {
-    await ResourcesCategory.findByIdAndRemove(id).exec()
+    await ResourcesCategory.findByIdAndDelete(id).exec()
   }
 }
 

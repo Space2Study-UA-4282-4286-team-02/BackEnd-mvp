@@ -46,7 +46,7 @@ const chatService = {
       throw createForbiddenError()
     }
 
-    await Chat.findByIdAndRemove(id).exec()
+    await Chat.findByIdAndDelete(id).exec()
   },
   markAsDeletedForCurrentUser: async (id, currentUser) => {
     const chat = await Chat.findById(id).exec()

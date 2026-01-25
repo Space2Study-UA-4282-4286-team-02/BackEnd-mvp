@@ -77,6 +77,257 @@ paths:
         '204':
           description: Deleted
 
+  /lessons:
+    get:
+      tags:
+        - Lessons
+      summary: Get lessons
+      description: Get lessons for the current user. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: title
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: categories
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            example: '{"order":"asc","orderBy":"updatedAt"}'
+        - in: query
+          name: skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: List of lessons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonList'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Lessons
+      summary: Create lesson
+      description: Create a new lesson. Accessible to authenticated users with role Tutor, Admin, or SuperAdmin.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonCreateRequest'
+      responses:
+        '201':
+          description: Lesson created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lesson'
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (authenticated but not allowed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /lessons/{id}:
+    get:
+      tags:
+        - Lessons
+      summary: Get lesson by id
+      description: Get a lesson by id. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lesson details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lesson'
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+        - Lessons
+      summary: Update lesson
+      description: Update an existing lesson. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonUpdateRequest'
+      responses:
+        '200':
+          description: Lesson updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lesson'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Lessons
+      summary: Delete lesson
+      description: Delete a lesson by id. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Lesson deleted successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /categories:
     get:
       summary: Get categories
@@ -937,3 +1188,112 @@ components:
           example: "Programming"
         appearance:
           $ref: '#/components/schemas/Appearance'
+
+    LessonCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Intro to Algebra"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: "Learn the basics of algebraic expressions."
+        content:
+          type: string
+          example: "<p>Lesson content</p>"
+        attachments:
+          type: array
+          items:
+            type: string
+          example: []
+        category:
+          type: string
+          nullable: true
+          example: "64b1c4f4e3a2b1c0d1e2f3a"
+
+    LessonUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        content:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+          nullable: true
+
+    Lesson:
+      type: object
+      required:
+        - _id
+        - title
+        - description
+        - author
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3b"
+        title:
+          type: string
+          example: "Intro to Algebra"
+        description:
+          type: string
+          example: "Learn the basics of algebraic expressions."
+        content:
+          type: string
+          example: "<p>Lesson content</p>"
+        attachments:
+          type: array
+          items:
+            type: string
+          example: []
+        category:
+          type: object
+          nullable: true
+          properties:
+            _id:
+              type: string
+            name:
+              type: string
+        author:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3c"
+        resourceType:
+          type: string
+          example: "lessons"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LessonList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'
