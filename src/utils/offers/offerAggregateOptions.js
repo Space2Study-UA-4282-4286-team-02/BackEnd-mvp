@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const getRegex = require('../getRegex')
 
-const offerAggregateOptions = (query, params) => {
+const offerAggregateOptions = (query = {}, params = {}) => {
   const {
     authorRole,
     price,
@@ -12,32 +12,84 @@ const offerAggregateOptions = (query, params) => {
     languages,
     nativeLanguage,
     excludedOfferId,
+    categoryId,
+    subjectId,
     sort = 'createdAt',
     status,
     skip = 0,
-    limit = 5
-  } = query
-  const { id: authorId } = params
+    limit = 5,
+    searchContext
+  } = query || {}
+  const { id: authorId } = params || {}
 
   const match = {}
 
-  if (search) {
-    const searchArray = search.trim().split(' ')
-    const firstNameRegex = getRegex(searchArray[0])
-    const lastNameRegex = getRegex(searchArray[1])
+  let context = searchContext
+  if (!context) {
+    if (authorId || categoryId || subjectId) context = 'subject'
+    else context = 'tutor'
+  }
 
-    const additionalFields = authorId
-      ? [{ 'subject.name': getRegex(search) }]
-      : [
-          { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex },
-          { 'author.firstName': lastNameRegex, 'author.lastName': firstNameRegex }
-        ]
+  if (search && String(search).trim() !== '') {
+    const q = String(search).trim()
+    const parts = q.split(/\s+/)
+    const first = parts[0]
+    const second = parts[1] || ''
 
-    match['$or'] = [{ title: getRegex(search) }, ...additionalFields]
+    const wholeRegex = getRegex(q)
+    const firstNameRegex = getRegex(first)
+    const lastNameRegex = second ? getRegex(second) : getRegex('')
+
+    const authorNameMatches = [
+      { 'author.firstName': wholeRegex },
+      { 'author.lastName': wholeRegex },
+      { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex },
+      { 'author.firstName': lastNameRegex, 'author.lastName': firstNameRegex }
+    ]
+
+    if (context === 'subject') {
+      match.$or = [
+        { title: wholeRegex },
+        { 'subject.name': wholeRegex },
+        ...authorNameMatches
+      ]
+    } else {
+      const singleNameFieldMatches = [
+        { 'author.firstName': wholeRegex },
+        { 'author.lastName': wholeRegex }
+      ]
+
+      const additionalFields = authorId
+        ? [{ 'subject.name': wholeRegex }]
+        : [
+            { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex },
+            { 'author.firstName': lastNameRegex, 'author.lastName': firstNameRegex },
+            ...singleNameFieldMatches
+          ]
+
+      match.$or = [{ title: wholeRegex }, ...additionalFields]
+    }
+  }
+
+  if (categoryId) {
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      throw new Error(`Invalid categoryId: ${categoryId}`)
+    }
+    match['category._id'] = new mongoose.Types.ObjectId(categoryId)
+  }
+
+  if (subjectId) {
+    if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+      throw new Error(`Invalid subjectId: ${subjectId}`)
+    }
+    match['subject._id'] = new mongoose.Types.ObjectId(subjectId)
   }
 
   if (authorId) {
-    match['author._id'] = mongoose.Types.ObjectId(authorId)
+    if (!mongoose.Types.ObjectId.isValid(authorId)) {
+      throw new Error(`Invalid authorId: ${authorId}`)
+    }
+    match['author._id'] = new mongoose.Types.ObjectId(authorId)
   }
 
   if (authorRole) {
@@ -50,11 +102,11 @@ const offerAggregateOptions = (query, params) => {
 
   if (price) {
     const [minPrice, maxPrice] = price
-    match.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) }
+    match.price = { $gte: parseInt(minPrice, 10), $lte: parseInt(maxPrice, 10) }
   }
 
   if (rating) {
-    match[`author.averageRating.${authorRole}`] = { $gte: parseInt(rating) }
+    match[`author.averageRating.${authorRole}`] = { $gte: parseInt(rating, 10) }
   }
 
   if (language) {
@@ -74,11 +126,14 @@ const offerAggregateOptions = (query, params) => {
   }
 
   if (excludedOfferId) {
-    match._id = { $ne: mongoose.Types.ObjectId(excludedOfferId) }
+    try {
+      match._id = { $ne: new mongoose.Types.ObjectId(excludedOfferId) }
+    } catch (e) {
+      console.warn(`Failed to parse excludedOfferId: ${excludedOfferId}`, e);
+    }
   }
 
   let sortOption = {}
-
   if (sort) {
     try {
       const parsedSort = JSON.parse(sort)
@@ -91,10 +146,10 @@ const offerAggregateOptions = (query, params) => {
           sortOption['price'] = 1
         } else if (sort === 'priceDesc') {
           sortOption['price'] = -1
-        } else if (sort === 'rating') {
+        } else if (sort === 'rating' && authorRole) {
           sortOption[`author.averageRating.${authorRole}`] = -1
         } else {
-          sortOption[sort] = -1
+          sortOption = { [sort]: -1 }
         }
       }
     }
@@ -123,15 +178,33 @@ const offerAggregateOptions = (query, params) => {
         as: 'author'
       }
     },
+    { $unwind: '$author' },
     {
-      $unwind: '$author'
+      $lookup: {
+        from: 'subjects',
+        localField: 'subject',
+        foreignField: '_id',
+        as: 'subject'
+      }
     },
+    { $unwind: { path: '$subject', preserveNullAndEmptyArrays: true } },
     {
-      $match: match
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category'
+      }
     },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
     {
-      $sort: sortOption
+      $addFields: {
+        subjectName: { $ifNull: ['$subject.name', null] },
+        categoryName: { $ifNull: ['$category.name', null] }
+      }
     },
+    { $match: match },
+    { $sort: sortOption },
     {
       $facet: {
         count: [{ $count: 'count' }],
