@@ -12,6 +12,7 @@ const quizService = {
     const items = await Quiz.find(match)
       .collation({ locale: 'en', strength: 1 })
       .populate({ path: 'category', select: '_id name' })
+      .populate({ path: 'items' })
       .sort(sort)
       .skip(skip)
       .limit(limit)
