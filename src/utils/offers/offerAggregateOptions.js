@@ -40,8 +40,19 @@ const offerAggregateOptions = (query = {}, params = {}) => {
     const firstNameRegex = getRegex(first)
     const lastNameRegex = second ? getRegex(second) : getRegex('')
 
+    const authorNameMatches = [
+      { 'author.firstName': wholeRegex },
+      { 'author.lastName': wholeRegex },
+      { 'author.firstName': firstNameRegex, 'author.lastName': lastNameRegex },
+      { 'author.firstName': lastNameRegex, 'author.lastName': firstNameRegex }
+    ]
+
     if (context === 'subject') {
-      match.$or = [{ title: wholeRegex }, { 'subject.name': wholeRegex }]
+      match.$or = [
+        { title: wholeRegex },
+        { 'subject.name': wholeRegex },
+        ...authorNameMatches
+      ]
     } else {
       const singleNameFieldMatches = [
         { 'author.firstName': wholeRegex },
