@@ -19,10 +19,8 @@ router.post(
 router.post('/login', validationMiddleware(loginValidationSchema), asyncWrapper(authController.login))
 
 router.post('/google-auth', asyncWrapper(authController.googleAuthHandler))
-
-router.post('/logout', asyncWrapper(authController.logout))
-
 router.get('/me', authMiddleware, asyncWrapper(authController.getMe))
+router.post('/logout', asyncWrapper(authController.logout))
 router.get('/refresh', asyncWrapper(authController.refreshAccessToken))
 router.get('/confirm-email/:token', asyncWrapper(authController.confirmEmail))
 router.post(
