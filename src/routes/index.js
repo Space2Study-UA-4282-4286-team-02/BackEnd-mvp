@@ -11,6 +11,7 @@ const subjectRoutes = require('~/routes/subject')
 const offer = require('~/routes/offer')
 const locationRoutes = require('~/routes/location')
 const lesson = require('~/routes/lesson')
+const quiz = require('~/routes/quiz')
 
 router.use('/auth', auth)
 router.use('/users', user)
@@ -23,5 +24,6 @@ router.use('/subjects', subjectRoutes)
 router.use('/offers', offer)
 router.use('/locations', locationRoutes)
 router.use('/lessons', lesson)
+router.use('/quizzes', quiz)
 
 module.exports = router

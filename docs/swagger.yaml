@@ -1034,6 +1034,106 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+
+  /quizzes:
+    post:
+      tags:
+        - Quizzes
+      summary: Create quiz
+      description: |
+        Create a new quiz. Accessible to authenticated users with roles Tutor or Admin.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizCreateRequest'
+            examples:
+              full:
+                summary: Full payload with optional fields
+                value:
+                  title: "Physics: Kinematics"
+                  description: "Short quiz about basic kinematics"
+                  items:
+                    - "63a1f1c8a1b2c3d4e5f6781"
+                    - "63a1f1c8a1b2c3d4e5f6782"
+                  category: "64b1c4f4e3a2b1c0d1e2f3a"
+                  resourceType: "quizzes"
+                  settings:
+                    scoredUnscoredResponses: true
+                    showCorrectAnswers: false
+                    shuffleQuestions: true
+                    quizView: "Stepper"
+      responses:
+        '201':
+          description: Quiz created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+              examples:
+                created:
+                  value:
+                    _id: "64d1f1c8a1b2c3d4e5f67890"
+                    title: "Physics: Kinematics"
+                    description: "Short quiz about basic kinematics"
+                    items:
+                      - "63a1f1c8a1b2c3d4e5f6781"
+                      - "63a1f1c8a1b2c3d4e5f6782"
+                    author: "5f8d0d55b54764421b7160d1"
+                    category: "64b1c4f4e3a2b1c0d1e2f3a"
+                    resourceType: "quizzes"
+                    settings:
+                      scoredUnscoredResponses: true
+                      showCorrectAnswers: false
+                      shuffleQuestions: true
+                      quizView: "Stepper"
+                    createdAt: "2025-01-01T12:00:00.000Z"
+                    updatedAt: "2025-01-01T12:00:00.000Z"
+        '400':
+          description: Validation error (bad request) — missing required fields or invalid formats.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingItems:
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Items cannot be empty (must contain at least one question)"
+                titleTooShort:
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Title must be at least 1 character"
+        '401':
+          description: Unauthorized — no valid auth cookie or token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — authenticated but role not allowed (must be Tutor or Admin).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found — referenced category or question not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict — duplicate or other conflict.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     cookieAuth:
