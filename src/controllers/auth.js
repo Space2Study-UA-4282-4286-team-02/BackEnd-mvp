@@ -159,7 +159,14 @@ const confirmEmail = async (req, res) => {
 const googleAuth = async (req, res) => {
   const { token } = req.body
 
-  const tokens = await authService.googleAuth(token)
+  const idToken = typeof token === 'string' ? token : token && token.credential
+  if (!idToken) {
+    return res.status(400).json({
+      error: { message: 'Missing or invalid token. Provide token as string or object with credential property.' }
+    })
+  }
+
+  const tokens = await authService.googleAuth(idToken)
 
   res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
   res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)

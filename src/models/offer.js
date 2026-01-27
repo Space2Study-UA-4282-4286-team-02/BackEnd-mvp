@@ -70,6 +70,7 @@ const offerSchema = new Schema(
       ref: CATEGORY,
       required: [true, 'category is required']
     },
+
     status: {
       type: String,
       enum: {
@@ -108,5 +109,12 @@ const offerSchema = new Schema(
     toObject: { virtuals: true }
   }
 )
+
+offerSchema.index({ category: 1 })
+offerSchema.index({ subject: 1 })
+offerSchema.index({ author: 1 })
+offerSchema.index({ createdAt: -1 })
+offerSchema.index({ price: 1 })
+offerSchema.index({ category: 1, createdAt: -1 })
 
 module.exports = model(OFFER, offerSchema)
