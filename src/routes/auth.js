@@ -1,5 +1,5 @@
 const router = require('express').Router()
-
+const { authMiddleware } = require('~/middlewares/auth')
 const asyncWrapper = require('~/middlewares/asyncWrapper')
 const validationMiddleware = require('~/middlewares/validation')
 const langMiddleware = require('~/middlewares/appLanguage')
