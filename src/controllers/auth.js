@@ -15,7 +15,7 @@ const COOKIE_OPTIONS = {
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
    ...(process.env.NODE_ENV === 'production' && COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
    path: '/'
-};
+}
 
 const signup = async (req, res) => {
   const { role, firstName, lastName, email, password } = req.body
@@ -38,6 +38,19 @@ const login = async (req, res) => {
 
   res.status(200).json(tokens)
 }
+
+const getMe = async (req, res) => {
+  try {
+    const { id } = req.user
+    const userData = await authService.getMe(id)
+    return res.status(200).json(userData)
+
+  } catch (error) {
+    const status = error.statusCode || 500
+    res.status(status).json({ message: error.message || 'Server error' })
+  }
+}
+
 
 const googleLogin = async (req, res) => {
    let legacyToken = req.body.token;
@@ -209,5 +222,6 @@ module.exports = {
   updatePassword,
   confirmEmail,
   googleAuth,
-  googleAuthHandler
+  googleAuthHandler,
+  getMe
 }
