@@ -45,7 +45,7 @@ const quizSchema = new Schema(
         values: QUIZ_VIEW_ENUM,
         message: ENUM_CAN_BE_ONE_OF('quiz view', QUIZ_VIEW_ENUM)
       },
-      default: QUIZ_VIEW_ENUM[1]
+      default: 'Scroll'
     },
     shuffleQuestions: {
       type: Boolean,
@@ -69,7 +69,7 @@ const quizSchema = new Schema(
         values: RESOURCES_TYPES_ENUM,
         message: ENUM_CAN_BE_ONE_OF('resource type', RESOURCES_TYPES_ENUM)
       },
-      default: RESOURCES_TYPES_ENUM[3]
+      default: 'quizzes'
     }
   },
   { timestamps: true, versionKey: false }

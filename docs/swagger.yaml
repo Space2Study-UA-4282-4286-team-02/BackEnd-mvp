@@ -226,6 +226,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /quizzes/{id}:
+    get:
+      tags:
+        - Quizzes
+      summary: Get quiz by id
+      description: Get a quiz by id. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quiz details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized (no/invalid auth cookie)
           content:
@@ -239,13 +267,103 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Category not found
+          description: Quiz not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '422':
+    patch:
+      tags:
+        - Quizzes
+      summary: Update quiz
+      description: Update an existing quiz. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizUpdateRequest'
+      responses:
+        '200':
+          description: Quiz updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (authenticated but not allowed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Quiz not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Quizzes
+      summary: Delete quiz
+      description: Delete a quiz by id. Accessible to authenticated tutors/admins/superadmins.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Quiz deleted successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (authenticated but not allowed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Quiz not found
           content:
             application/json:
               schema:
@@ -1385,8 +1503,7 @@ components:
         items:
           type: array
           items:
-            type: string
-          example: []
+            $ref: '#/components/schemas/Question'
         category:
           type: object
           nullable: true
@@ -1416,6 +1533,91 @@ components:
         resourceType:
           type: string
           example: "quizzes"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    QuizUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Updated quiz title"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: "Updated quiz description."
+        items:
+          type: array
+          items:
+            type: string
+          example: []
+        category:
+          type: string
+          nullable: true
+          example: "64b1c4f4e3a2b1c0d1e2f3a"
+        quizView:
+          type: string
+          enum: ["Stepper", "Scroll"]
+        shuffleQuestions:
+          type: boolean
+        pointValues:
+          type: boolean
+        scoredUnscoredResponses:
+          type: boolean
+        correctAnswers:
+          type: boolean
+
+    Question:
+      type: object
+      required:
+        - _id
+        - title
+        - text
+        - type
+        - author
+      properties:
+        _id:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3e"
+        title:
+          type: string
+          example: "Linear equations basics"
+        text:
+          type: string
+          example: "Solve: 2x + 3 = 11"
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              isCorrect:
+                type: boolean
+        type:
+          type: string
+          example: "oneAnswer"
+        category:
+          type: object
+          nullable: true
+          properties:
+            _id:
+              type: string
+            name:
+              type: string
+        author:
+          type: string
+          example: "64b1c4f4e3a2b1c0d1e2f3c"
+        resourceType:
+          type: string
+          example: "questions"
         createdAt:
           type: string
           format: date-time
