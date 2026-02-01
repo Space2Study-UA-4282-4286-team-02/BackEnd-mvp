@@ -96,10 +96,28 @@ describe('Auth service (integration)', () => {
     const tokenDoc = await Token.findOne({ user: created._id }).lean()
     expect(tokenDoc.refreshToken).toBe(tokens.refreshToken)
 
-    const updatedUser = await User.findById(created._id).select('+isFirstLogin +isEmailConfirmed').lean()
+    const updatedUser = await User.findById(created._id).select('+isFirstLogin').lean()
     expect(updatedUser.isFirstLogin).toBe(false)
-    expect(updatedUser.isEmailConfirmed).toBe(true)
     expect(updatedUser.lastLogin).toBeInstanceOf(Date)
+  })
+
+  it('login fails when email is not confirmed', async () => {
+    const user = buildUser()
+
+    await userService.createUser(
+      user.role,
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.password,
+      user.appLanguage,
+      false
+    )
+
+    await expect(authService.login(user.email, user.password)).rejects.toMatchObject({
+      status: 401,
+      code: 'EMAIL_NOT_CONFIRMED'
+    })
   })
 
   it('refreshAccessToken rotates refresh token', async () => {
