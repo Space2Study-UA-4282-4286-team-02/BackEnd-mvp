@@ -165,6 +165,6 @@ describe('Auth service (integration)', () => {
     expect(updatedUser.isEmailConfirmed).toBe(true)
 
     const tokenAfter = await Token.findOne({ user: result.userId }).lean()
-    expect(tokenAfter).toBeNull()
+    expect(tokenAfter.confirmToken).toBeNull()
   })
 })
