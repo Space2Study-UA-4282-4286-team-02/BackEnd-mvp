@@ -5,7 +5,9 @@
 /src/test/coverage
 test-report.xml
 /build
-.vscode/ 
+/.vscode
+
+.vscode 
 
 # sonar scanner work
 .scannerwork

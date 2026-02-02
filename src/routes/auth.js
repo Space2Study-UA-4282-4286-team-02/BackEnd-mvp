@@ -1,5 +1,5 @@
 const router = require('express').Router()
-
+const { authMiddleware } = require('~/middlewares/auth')
 const asyncWrapper = require('~/middlewares/asyncWrapper')
 const validationMiddleware = require('~/middlewares/validation')
 const langMiddleware = require('~/middlewares/appLanguage')
@@ -19,7 +19,7 @@ router.post(
 router.post('/login', validationMiddleware(loginValidationSchema), asyncWrapper(authController.login))
 
 router.post('/google-auth', asyncWrapper(authController.googleAuthHandler))
-
+router.get('/me', authMiddleware, asyncWrapper(authController.getMe))
 router.post('/logout', asyncWrapper(authController.logout))
 router.get('/refresh', asyncWrapper(authController.refreshAccessToken))
 router.get('/confirm-email/:token', asyncWrapper(authController.confirmEmail))
