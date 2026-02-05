@@ -1,7 +1,8 @@
 const { Schema, model } = require('mongoose')
+
 const {
-  enums: { RESOURCES_TYPES_ENUM }
-     } = require('~/consts/validation')
+  enums: { QUIZ_VIEW_ENUM, RESOURCES_TYPES_ENUM }
+} = require('~/consts/validation')
 const {   QUIZ,
           QUESTION,
           USER,
@@ -50,20 +51,21 @@ const quizSchema = new Schema(
         values: RESOURCES_TYPES_ENUM,
         message: ENUM_CAN_BE_ONE_OF('resourceType', RESOURCES_TYPES_ENUM)
       },
-      default: RESOURCES_TYPES_ENUM[0] 
+      default: 'quizzes' 
     },
  settings: {
+  quizView: {
+        type: String,
+        enum: {
+          values: QUIZ_VIEW_ENUM,
+          message: ENUM_CAN_BE_ONE_OF('quiz view', QUIZ_VIEW_ENUM)
+        },
+        default: 'Scroll'
+      },
       scoredUnscoredResponses: { type: Boolean, default: false },
       showCorrectAnswers: { type: Boolean, default: false },
       shuffleQuestions: { type: Boolean, default: false },
-      quizView: {
-        type: String,
-        enum: {
-          values: ['Stepper', 'Scroll'],
-          message: ENUM_CAN_BE_ONE_OF('quiz view', ['Stepper', 'Scroll'])
-        },
-        default: 'Scroll'
-      }
+      pointValues: { type: Boolean, default: false }
     }
   },
 {  
@@ -73,6 +75,7 @@ const quizSchema = new Schema(
     versionKey: false,
     id: false
   }
+
 )
 
 module.exports = model(QUIZ, quizSchema)
