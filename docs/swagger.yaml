@@ -351,13 +351,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unauthorized (no/invalid auth cookie)
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
-          description: Forbidden (authenticated but not allowed)
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -1283,7 +1283,6 @@ components:
           example: "Programming"
         appearance:
           $ref: '#/components/schemas/Appearance'
- 
         totalOffers:
           type: object
           properties:
@@ -1293,7 +1292,6 @@ components:
             tutor:
               type: integer
               example: 0
-
         createdAt:
           type: string
           format: date-time
@@ -1519,6 +1517,7 @@ components:
             - quizzes
           description: "Resource type. Default: 'quizzes'."
           example: "quizzes"
+          default: "quizzes"
         settings:
           type: object
           description: "Quiz settings."
@@ -1535,17 +1534,17 @@ components:
               type: boolean
               description: "Shuffle question order."
               default: false
-          pointValues:
-            type: boolean
-            description: "Use point values for questions."
-            default: false
-          quizView:
+            pointValues:
+              type: boolean
+              description: "Use point values for questions."
+              default: false
+            quizView:
               type: string
               enum:
                 - Stepper
                 - Scroll
               description: "UI view for the quiz. Possible values: 'Stepper', 'Scroll'."
-              default: Scroll
+              default: "Scroll"
           additionalProperties: false
       required:
         - title
@@ -1566,6 +1565,7 @@ components:
 
     QuizUpdateRequest:
       type: object
+      description: "Partial quiz update. Fields are optional; include only the fields to update."
       properties:
         title:
           type: string
@@ -1575,7 +1575,7 @@ components:
         description:
           type: string
           minLength: 1
-          maxLength: 1000
+          maxLength: 150
           example: "Updated quiz description."
         items:
           type: array
@@ -1586,17 +1586,29 @@ components:
           type: string
           nullable: true
           example: "64b1c4f4e3a2b1c0d1e2f3a"
-        quizView:
+        resourceType:
           type: string
-          enum: ["Stepper", "Scroll"]
-        shuffleQuestions:
-          type: boolean
-        pointValues:
-          type: boolean
-        scoredUnscoredResponses:
-          type: boolean
-        correctAnswers:
-          type: boolean
+          enum:
+            - lessons
+            - attachments
+            - questions
+            - quizzes
+        settings:
+          type: object
+          properties:
+            quizView:
+              type: string
+              enum:
+                - Stepper
+                - Scroll
+            shuffleQuestions:
+              type: boolean
+            pointValues:
+              type: boolean
+            scoredUnscoredResponses:
+              type: boolean
+            showCorrectAnswers:
+              type: boolean
 
     Question:
       type: object
@@ -1659,4 +1671,3 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Quiz'
-
