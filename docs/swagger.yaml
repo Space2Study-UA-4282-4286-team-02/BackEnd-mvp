@@ -351,13 +351,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unauthorized (no/invalid auth cookie)
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
-          description: Forbidden (authenticated but not allowed)
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -585,6 +585,67 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Categories
+      summary: Create Category
+      description: >
+        Create a new category. Accessible only to authenticated users with role **Admin**.
+      security:
+        - cookieAuth: []        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+            examples:
+              minimal:
+                value:
+                  name: "Utilities"
+              full:
+                value:
+                  name: "Home"
+                  appearance:
+                    icon: "icons/home.svg"
+                    color: "#ff0000"
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error (bad request)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (no/invalid auth cookie)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (authenticated but not Admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict — category with the same unique field already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -1156,69 +1217,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /categories:
-    post:
-      tags:
-        - Categories
-      summary: Create Category
-      description: >
-        Create a new category. Accessible only to authenticated users with role **Admin**.
-      security:
-        - cookieAuth: []        
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryCreateRequest'
-            examples:
-              minimal:
-                value:
-                  name: "Utilities"
-              full:
-                value:
-                  name: "Home"
-                  appearance:
-                    icon: "icons/home.svg"
-                    color: "#ff0000"
-      responses:
-        '201':
-          description: Category created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-        '400':
-          description: Validation error (bad request)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized (no/invalid auth cookie)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden (authenticated but not Admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Conflict — category with the same unique field already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
 components:
   securitySchemes:
     cookieAuth:
@@ -1285,7 +1283,6 @@ components:
           example: "Programming"
         appearance:
           $ref: '#/components/schemas/Appearance'
- 
         totalOffers:
           type: object
           properties:
@@ -1295,7 +1292,6 @@ components:
             tutor:
               type: integer
               example: 0
-
         createdAt:
           type: string
           format: date-time
@@ -1483,65 +1479,93 @@ components:
 
     Quiz:
       type: object
-      required:
-        - _id
-        - title
-        - description
-        - author
-        - createdAt
-        - updatedAt
       properties:
-        _id:
-          type: string
-          example: "64b1c4f4e3a2b1c0d1e2f3d"
         title:
           type: string
-          example: "Intro to Algebra Quiz"
+          description: "Title of the quiz."
+          minLength: 1
+          maxLength: 100
+          example: "Basic Math Quiz"
         description:
           type: string
-          example: "Check your understanding of algebraic expressions."
+          description: "Optional description."
+          maxLength: 150
+          example: "A short quiz for basic arithmetic."
         items:
           type: array
+          description: "Array of Question ObjectIds (required, must contain at least one question)."
+          minItems: 1
           items:
-            $ref: '#/components/schemas/Question'
-        category:
-          type: object
-          nullable: true
-          properties:
-            _id:
-              type: string
-            name:
-              type: string
+            type: string
+            description: "MongoDB ObjectId of a Question"
+            example: "63a1f1c8a1b2c3d4e5f6781"
         author:
           type: string
-          example: "64b1c4f4e3a2b1c0d1e2f3c"
-        quizView:
+          description: "Author ObjectId (required)."
+          example: "5f8d0d55b54764421b7160d1"
+        category:
           type: string
-          example: "Scroll"
-        shuffleQuestions:
-          type: boolean
-          example: false
-        pointValues:
-          type: boolean
-          example: false
-        scoredUnscoredResponses:
-          type: boolean
-          example: false
-        correctAnswers:
-          type: boolean
-          example: false
+          nullable: true
+          description: "Optional category ObjectId."
+          example: null
         resourceType:
           type: string
+          enum:
+            - lessons
+            - attachments
+            - questions
+            - quizzes
+          description: "Resource type. Default: 'quizzes'."
           example: "quizzes"
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
+          default: "quizzes"
+        settings:
+          type: object
+          description: "Quiz settings."
+          properties:
+            scoredUnscoredResponses:
+              type: boolean
+              description: "If true, score responses; otherwise unscored."
+              default: false
+            showCorrectAnswers:
+              type: boolean
+              description: "Show correct answers after submission."
+              default: false
+            shuffleQuestions:
+              type: boolean
+              description: "Shuffle question order."
+              default: false
+            pointValues:
+              type: boolean
+              description: "Use point values for questions."
+              default: false
+            quizView:
+              type: string
+              enum:
+                - Stepper
+                - Scroll
+              description: "UI view for the quiz. Possible values: 'Stepper', 'Scroll'."
+              default: "Scroll"
+          additionalProperties: false
+      required:
+        - title
+        - items
+        - author
+      additionalProperties: false
+      x-validationMessages:
+        title:
+          required: "Title cannot be empty"
+          minlength: "Title must be at least 1 character"
+          maxlength: "Title cannot exceed 100 characters"
+        items:
+          required: "Items cannot be empty (must contain at least one question)"
+        author:
+          required: "Author cannot be empty"
+        resourceType:
+          enum: "Resource type must be one of: lessons, attachments, questions, quizzes"
 
     QuizUpdateRequest:
       type: object
+      description: "Partial quiz update. Fields are optional; include only the fields to update."
       properties:
         title:
           type: string
@@ -1551,7 +1575,7 @@ components:
         description:
           type: string
           minLength: 1
-          maxLength: 1000
+          maxLength: 150
           example: "Updated quiz description."
         items:
           type: array
@@ -1562,17 +1586,29 @@ components:
           type: string
           nullable: true
           example: "64b1c4f4e3a2b1c0d1e2f3a"
-        quizView:
+        resourceType:
           type: string
-          enum: ["Stepper", "Scroll"]
-        shuffleQuestions:
-          type: boolean
-        pointValues:
-          type: boolean
-        scoredUnscoredResponses:
-          type: boolean
-        correctAnswers:
-          type: boolean
+          enum:
+            - lessons
+            - attachments
+            - questions
+            - quizzes
+        settings:
+          type: object
+          properties:
+            quizView:
+              type: string
+              enum:
+                - Stepper
+                - Scroll
+            shuffleQuestions:
+              type: boolean
+            pointValues:
+              type: boolean
+            scoredUnscoredResponses:
+              type: boolean
+            showCorrectAnswers:
+              type: boolean
 
     Question:
       type: object
