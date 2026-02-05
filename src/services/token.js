@@ -111,7 +111,7 @@ const tokenService = {
   },
 
   removeConfirmToken: async (confirmToken) => {
-    await Token.deleteOne({ confirmToken })
+    await Token.updateOne({ confirmToken }, { $set: { confirmToken: null } })
   }
 }
 
