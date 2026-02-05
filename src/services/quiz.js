@@ -1,4 +1,5 @@
 const Quiz = require('~/models/quiz')
+
 const filterAllowedFields = require('~/utils/filterAllowedFields')
 const { allowedQuizFieldsForUpdate } = require('~/validation/services/quiz')
 const { createError, createForbiddenError } = require('~/utils/errorsHelper')
@@ -8,6 +9,26 @@ const {
 } = require('~/consts/auth')
 
 const quizService = {
+  createQuiz: async (author, data) => {
+    const { title, description, items, category, resourceType, settings } = data
+
+    const quiz = await Quiz.create({
+      title,
+      description,
+      items,
+      author,
+      category,
+      resourceType,
+      settings
+    })
+
+    return await quiz.populate([
+      { path: 'items', select: '_id title text type' },
+      { path: 'author', select: '_id firstName lastName email' },
+      { path: 'category', select: '_id name' }
+    ])
+  },
+
   getQuizzes: async (match, sort, skip = 0, limit = 10) => {
     const items = await Quiz.find(match)
       .collation({ locale: 'en', strength: 1 })

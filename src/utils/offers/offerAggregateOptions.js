@@ -197,12 +197,7 @@ const offerAggregateOptions = (query = {}, params = {}) => {
       }
     },
     { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        subjectName: { $ifNull: ['$subject.name', null] },
-        categoryName: { $ifNull: ['$category.name', null] }
-      }
-    },
+    
     { $match: match },
     { $sort: sortOption },
     {

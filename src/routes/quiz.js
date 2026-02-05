@@ -1,5 +1,5 @@
-const router = require('express').Router()
-
+const express = require('express')
+const router = express.Router()
 const Quiz = require('~/models/quiz')
 const Question = require('~/models/question')
 const ResourcesCategory = require('~/models/resourcesCategory')
@@ -23,6 +23,7 @@ const body = [
   { model: Question, idName: 'items' }
 ]
 
+router.post('/', isEntityValid({ body }), asyncWrapper(quizController.createQuiz))
 router.get('/', asyncWrapper(quizController.getQuizzes))
 router.get('/:id', isEntityValid({ params }), asyncWrapper(quizController.getQuizById))
 router.patch('/:id', isEntityValid({ body }), asyncWrapper(quizController.updateQuiz))

@@ -62,6 +62,14 @@ const getQuizById = async (req, res) => {
   res.status(200).json(quiz)
 }
 
+const createQuiz = async (req, res) => {
+  const { id: author } = req.user
+  const data = req.body
+
+  const newQuiz = await quizService.createQuiz(author, data)
+  res.status(201).json(newQuiz)
+}
+
 const updateQuiz = async (req, res) => {
   const { id } = req.params
   const { id: currentUserId, role: currentUserRole } = req.user
@@ -84,6 +92,7 @@ const deleteQuiz = async (req, res) => {
 module.exports = {
   getQuizzes,
   getQuizById,
+  createQuiz,
   updateQuiz,
   deleteQuiz
 }
